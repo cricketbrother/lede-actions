@@ -7,7 +7,6 @@ on:
 
 jobs:
     build_lede_fireware:
-        name: build lede fireware
         runs-on: ubuntu-latest
         steps:
             - name: Install compilation dependencies
