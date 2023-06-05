@@ -27,6 +27,7 @@ jobs:
             - name: Enter into 'lede' directory
               run: |
                 cd lede
+                ls -lh
             - name: Edit feeds.conf.default
               run: |
                 ls -lh
