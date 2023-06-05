@@ -3,7 +3,7 @@ name: build x86-64 lede fireware
 
 on:
     schedule:
-        - cron: '0 0 * * *'
+        - cron: 0 0 * * *
 
 jobs:
     build_lede_fireware:
