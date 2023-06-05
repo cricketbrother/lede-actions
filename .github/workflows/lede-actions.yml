@@ -11,7 +11,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Install compilation dependencies
-              run:
+              run: |
                 sudo apt update -y
                 sudo apt full-upgrade -y
                 sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
@@ -22,24 +22,24 @@ jobs:
                 libpython3-dev qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip \
                 vim wget xmlto xxd zlib1g-dev
             - name: Download source code
-              run:
+              run: |
                 git clone https://github.com/coolsnowwolf/lede
             - name: Enter into 'lede' directory
-              run:
+              run: |
                 cd lede
             - name: Edit feeds.conf.default
-              run:
+              run: |
                 sed -i 's/^#\(.*helloworld\)/\1/' feeds.conf.default
             - name: Update & install feeds
-              run:
+              run: |
                 ./scripts/feeds update -a
                 ./scripts/feeds install -a
             - name: make default config
-              run:
+              run: |
                 make defconfig
             - name: make download
-              run:
+              run: |
                 make download -j8
             - name: make
-              run:
+              run: |
                 make V=s -j1
