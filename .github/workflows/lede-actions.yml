@@ -4,6 +4,7 @@ name: build x86-64 lede fireware
 on:
     schedule:
         - cron: 0 0 * * *
+    workflow_dispatch:
 
 jobs:
     build_lede_fireware:
