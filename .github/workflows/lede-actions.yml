@@ -60,6 +60,12 @@ jobs:
           tag=$(date +"v%Y.%m.%d")
           echo "tag=$tag" >> $GITHUB_OUTPUT
 
+      - name: Set time
+        id: time
+        run: |
+          time=$(date -d "+8 hours" +"%Y-%m-%d %H:%M:%S")
+          echo "time=$time" >> $GITHUB_OUTPUT
+
       - name: Upload release asset
         uses: softprops/action-gh-release@v1
         with:
@@ -70,5 +76,6 @@ jobs:
           body: |
             ## 说明
             1. 本固件基于 [coolsnowwolf/lede](https://github.com/coolsnowwolf/lede) 自动编译而成，适用于x86_64平台
-            2. 本固件基于默认配置编译，增加非EFI和QCOW2格式固件，并且取消GZIP压缩
+            2. 本固件在默认配置的基础上，增加helloworld，增加非EFI和QCOW2格式固件，并且取消GZIP压缩
             3. 本固件默认管理地址为： [http://192.168.1.1](http://192.168.1.1) ，用户名：root，密码：password
+            时间：${{ steps.time.outputs.time }}
