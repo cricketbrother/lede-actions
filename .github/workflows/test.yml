@@ -1,0 +1,21 @@
+name: test
+
+on:
+    workflow_dispatch:
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: 1
+              run: |
+                echo "zhouwc" > zhouwc.txt
+
+            - name: 2
+              uses: softprops/action-gh-release@v1
+              with:
+                files: |
+                  zhouwc.txt
+                tag_name: $(date +"v%Y.%m.%d.%H%M%S")
+                draft: false
+                prerelease: false
