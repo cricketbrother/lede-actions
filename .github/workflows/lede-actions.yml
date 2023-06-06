@@ -55,7 +55,7 @@ jobs:
 
       - name: Make
         run: |
-          make V=s -j1
+          make V=s -j2
 
       - name: Set tag
         id: tag
