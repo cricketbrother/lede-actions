@@ -18,13 +18,17 @@ jobs:
 
             - name: 1
               run: |
-                echo "zhouwc" > zhouwc.txt
+                echo "zhouwc" > zhouwc1.txt
+                echo "zhouwc" > zhouwc2.txt
+                echo "zhouwc" > zhouwc3.txt
+                echo "zhouwc" > zhouwc4.txt
 
             - name: 2
               uses: softprops/action-gh-release@v1
               with:
                 files: |
-                  zhouwc.txt
+                  zhouwc*.txt
+                  !zhouwc4.txt
                 tag_name: ${{ steps.current_tag.outputs.current_tag }}
                 draft: false
                 prerelease: false

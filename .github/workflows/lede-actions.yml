@@ -42,11 +42,9 @@ jobs:
                 echo "CONFIG_TARGET_x86=y" > .config
                 echo "CONFIG_TARGET_x86_64=y" >> .config
                 echo "CONFIG_TARGET_x86_64_DEVICE_generic=y" >> .config
-                echo "CONFIG_TARGET_x86_Generic=y" >> .config
                 echo "CONFIG_GRUB_IMAGES=y" >> .config
-                echo "CONFIG_GRUB_EFI_IMAGES=y" >> .config
                 echo "CONFIG_QCOW2_IMAGES=y" >> .config
-                echo "CONFIG_VMDK_IMAGES=y" >> .config
+                echo "# CONFIG_TARGET_IMAGES_GZIP is not set" >> .config
                 make defconfig
 
             - name: Make download
@@ -57,16 +55,18 @@ jobs:
               run: |
                 make V=s -j1
 
-            - name: Move artifacts
+            - name: Set tag
+              id: tag
               run: |
-                ls -lh bin/targets/x86/64
-                mkdir -p artifacts
-                mv bin/targets/x86/64/* artifacts
+                tag=$(date +"v%Y.%m.%d.%H%M%S")
+                echo ::set-output name=tag::$tag
 
-            - name: Upload artifacts
-              uses: actions/upload-artifact@v3
+            - name: Upload release asset
+              uses: softprops/action-gh-release@v1
               with:
-                name: lede-x86_64
-                path: |
-                  artifacts/*
-                  !artifacts/packages
+                files: |
+                  bin/targets/x86/64/*
+                  !bin/targets/x86/64/packages
+                tag_name: ${{ steps.tag.outputs.tag }}
+                draft: false
+                prerelease: false
