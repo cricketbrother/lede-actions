@@ -58,15 +58,18 @@ jobs:
             - name: Set tag
               id: tag
               run: |
-                tag=$(date +"v%Y.%m.%d.%H%M%S")
+                tag=$(date +"v%Y.%m.%d")
                 echo ::set-output name=tag::$tag
 
             - name: Upload release asset
               uses: softprops/action-gh-release@v1
               with:
-                files: |
-                  bin/targets/x86/64/*
-                  !bin/targets/x86/64/packages
+                files: bin/targets/x86/64/*
                 tag_name: ${{ steps.tag.outputs.tag }}
                 draft: false
                 prerelease: false
+                body: |
+                  ## 说明
+                  1. 本固件基于 [coolsnowwolf/lede](https://github.com/coolsnowwolf/lede)自动编译而成，适用于x86_64平台
+                  2. 本固件基于默认配置编译，增加非EFI和QCOW2格式固件，并且取消GZIP压缩
+                  3. 本固件默认管理地址为：http://192.168.1.1/，用户名：root，密码：password
