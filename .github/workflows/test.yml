@@ -10,6 +10,12 @@ jobs:
     test:
         runs-on: ubuntu-latest
         steps:
+            - name: 0
+              id: current_tag
+              run: |
+                current_tag=$(date +"v%Y.%m.%d.%H%M%S")
+                echo ::set-output name=current_tag::$current_tag
+
             - name: 1
               run: |
                 echo "zhouwc" > zhouwc.txt
@@ -19,6 +25,6 @@ jobs:
               with:
                 files: |
                   zhouwc.txt
-                tag_name: $(date +"v%Y.%m.%d.%H%M%S")
+                tag_name: ${{ steps.current_tag.outputs.current_tag }}
                 draft: false
                 prerelease: false
