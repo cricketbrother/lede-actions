@@ -13,3 +13,4 @@ jobs:
       - name: 0
         run: |
           sudo dpkg-query -l
+          sudo df -h
