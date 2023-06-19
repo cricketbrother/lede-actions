@@ -23,6 +23,8 @@ jobs:
           mkisofs msmtp nano ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pyelftools \
           libpython3-dev qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip \
           vim wget xmlto xxd zlib1g-dev
+          sudo apt autoremove --purge -y
+          sudo apt clean -y
 
       - name: Checkout source code
         uses: actions/checkout@v3
