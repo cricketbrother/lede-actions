@@ -11,32 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 0
-        id: current_tag
         run: |
-          current_tag=$(date +"v%Y.%m.%d.%H%M%S")
-          echo "current_tag=$current_tag" >> $GITHUB_OUTPUT
-
-      - name: 1
-        run: |
-          cat /proc/cpuinfo | grep processor
-          mkdir -p 123
-          mkdir -p 456
-          echo "zhouwc" > zhouwc1.txt
-          echo "zhouwc" > zhouwc2.txt
-          echo "zhouwc" > zhouwc3.txt
-          echo "zhouwc" > zhouwc4.txt
-          ls -lh
-
-      - name: 2
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            *
-          tag_name: ${{ steps.current_tag.outputs.current_tag }}
-          draft: false
-          prerelease: false
-          body: |
-            ## 说明
-            1. 本固件基于 [coolsnowwolf/lede](https://github.com/coolsnowwolf/lede) 自动编译而成，适用于x86_64平台
-            2. 本固件基于默认配置编译，增加非EFI和QCOW2格式固件，并且取消GZIP压缩
-            3. 本固件默认管理地址为： [http://192.168.1.1](http://192.168.1.1) ，用户名：root，密码：password
+          sudo dpkg-query -l
+          sudo df -h
+          sudo apt update -y
+          sudo apt -y purge azure-cli* docker* ghc* zulu* llvm* firefox google* dotnet* powershell* openjdk* mysql* php* mongodb* dotnet* moby* snap*
+          sudo df -h
+          sudo pwd
