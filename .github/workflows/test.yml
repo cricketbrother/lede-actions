@@ -1,14 +1,14 @@
-name: Auto Delete Old Releases and Tags
+name: Cleanup old releases and tags
 on:
   schedule:
-    - cron: '0 0 * * *' # 每天 UTC 时间的 00:00
+    - cron: '0 23 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  delete_old_releases_and_tags:
+  cleanup_old_releases_and_tags:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
@@ -23,17 +23,14 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        # Calculate 30 days ago date
         DELETE_DATE=$(date -u -d "30 days ago" +"%Y-%m-%dT%H:%M:%SZ")
 
-        # Delete old releases
         RELEASES=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases")
         for row in $(echo "$RELEASES" | jq -r '.[] | @base64'); do
           _jq() {
             echo "$row" | base64 --decode | jq -r "$1"
           }
 
-          RELEASE_DATE=$(_jq '.created_at')
           if [[ "$RELEASE_DATE" < "$DELETE_DATE" ]]; then
             RELEASE_ID=$(_jq '.id')
             echo "Deleting Release: $RELEASE_ID"
@@ -41,7 +38,6 @@ jobs:
           fi
         done
 
-        # Delete old tags
         TAGS=$(git tag -n | grep -E "^v[0-9]{4}\.[0-9]{2}\.[0-9]{2}" | awk '{print $1}')
         for TAG in $TAGS; do
           TAG_DATE=$(git log -1 --format=%ai $TAG)
