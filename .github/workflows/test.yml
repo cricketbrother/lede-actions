@@ -4,6 +4,9 @@ on:
     - cron: '0 0 * * *' # 每天 UTC 时间的 00:00
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   delete_old_releases_and_tags:
     runs-on: ubuntu-latest
