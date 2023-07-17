@@ -17,8 +17,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # 设置日期阈值，例如删除一月前的发布和标签
-          DATE_THRESHOLD=$(date -d "1 month ago" +%Y-%m-%d)
+          # 设置日期阈值，例如删除30天前的发布和标签
+          DATE_THRESHOLD=$(date -d "30 days ago" +%Y-%m-%d)
           
           # 删除早于阈值日期的发布
           git tag -l | while read -r tag; do
