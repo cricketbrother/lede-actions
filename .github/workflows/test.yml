@@ -10,11 +10,23 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: 0
+      - name: Delete Old Release and Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          sudo dpkg-query -l
-          sudo df -h
-          sudo apt update -y
-          sudo apt -y purge azure-cli* docker* ghc* zulu* llvm* firefox google* dotnet* powershell* openjdk* mysql* php* mongodb* dotnet* moby* snap*
-          sudo df -h
-          sudo pwd
+          # 设置日期阈值，例如删除一年前的发布和标签
+          DATE_THRESHOLD=$(date -d "1 year ago" +%Y-%m-%d)
+          
+          # 删除早于阈值日期的发布
+          git tag -l | while read -r tag; do
+            tag_date=$(git log -1 --format='%ai' "$tag" | cut -d' ' -f1)
+            if [[ "$tag_date" < "$DATE_THRESHOLD" ]]; then
+              git push --delete origin "$tag"
+              git tag -d "$tag"
+            fi
+          done
+
+          # 删除早于阈值日期的标签
+          for release_id in $(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases" | jq -r ".[] | select(.created_at < \"$DATE_THRESHOLD\") | .id"); do
+            curl -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/$release_id"
+          done
