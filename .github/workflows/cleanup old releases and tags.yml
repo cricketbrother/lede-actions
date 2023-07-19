@@ -31,11 +31,10 @@ jobs:
             echo "$row" | base64 --decode | jq -r "$1"
           }
           RELEASE_DATE=$(_jq '.published_at')
-          echo "Release Date: $RELEASE_DATE"
 
           if [[ "$RELEASE_DATE" < "$DELETE_DATE" ]]; then
             RELEASE_ID=$(_jq '.id')
-            echo "Deleting Release: $RELEASE_ID"
+            echo "Deleting Release: $RELEASE_ID, $RELEASE_DATE"
             curl -X DELETE -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/${{ github.repository }}/releases/$RELEASE_ID"
           fi
         done
