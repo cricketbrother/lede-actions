@@ -30,6 +30,8 @@ jobs:
           _jq() {
             echo "$row" | base64 --decode | jq -r "$1"
           }
+          RELEASE_DATE=$(_jq '.published_at')
+          echo "Release Date: $RELEASE_DATE"
 
           if [[ "$RELEASE_DATE" < "$DELETE_DATE" ]]; then
             RELEASE_ID=$(_jq '.id')
