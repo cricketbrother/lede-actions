@@ -38,7 +38,8 @@ jobs:
 
       - name: Edit feeds.conf.default
         run: |
-          sed -i 's/^#\(.*helloworld\)/\1/' feeds.conf.default
+          echo "src-git kenzo https://github.com/kenzok8/openwrt-packages" >> feeds.conf.default     
+          echo "src-git small https://github.com/kenzok8/small" >> feeds.conf.default
 
       - name: Update & install feeds
         run: |
@@ -53,7 +54,8 @@ jobs:
           echo "CONFIG_GRUB_IMAGES=y" >> .config
           echo "CONFIG_QCOW2_IMAGES=y" >> .config
           echo "# CONFIG_TARGET_IMAGES_GZIP is not set" >> .config
-          echo "CONFIG_PACKAGE_luci-app-dockerman=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-passwall=y" >> .config
+          echo "CONFIG_PACKAGE_luci-app-smartdns=y" >> .config
           make defconfig
 
       - name: Make download
