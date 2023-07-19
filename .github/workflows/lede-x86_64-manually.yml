@@ -1,4 +1,4 @@
-name: lede-x86_64
+name: lede-x86_64-manually
 
 on:
   workflow_dispatch:
