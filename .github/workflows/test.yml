@@ -60,7 +60,8 @@ jobs:
         id: apps
         run: |
           apps=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
-          echo "apps=$apps" >> $GITHUB_OUTPUT          
+          app_list=$(echo "$apps" | tr ' ' '\n')
+          echo "app_list=$app_list" >> $GITHUB_OUTPUT          
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
@@ -76,5 +77,5 @@ jobs:
             3. 本固件包含img/vmdk/qcow2三种格式
             4. 本固件默认管理地址为：[http://192.168.5.1](http://192.168.5.1) ，用户名：root，密码：password
             5. 本固件包含以下APP：
-            ${{ join(steps.apps.outputs.apps, '\n- ') }}
+            ${{ steps.apps.outputs.app_list }}
             
