@@ -12,7 +12,7 @@ jobs:
     steps:
       - name: Install compilation dependencies
         run: |
-          config_data=$(cat << EOF
+          cat << EOF > .config
           CONFIG_PACKAGE_luci=y
           CONFIG_PACKAGE_luci-app-accesscontrol=y
           CONFIG_PACKAGE_luci-app-adbyby-plus=y
@@ -37,8 +37,6 @@ jobs:
           CONFIG_PACKAGE_luci-newapi=y
           CONFIG_PACKAGE_luci-proto-bonding=y
           EOF
-          )
-          echo "$config_data" > .config
 
       - name: Set tag
         id: tag
