@@ -13,29 +13,29 @@ jobs:
       - name: Install compilation dependencies
         run: |
           config_data=$(cat << EOF
-          CONFIG_DEFAULT_luci=y
-          CONFIG_DEFAULT_luci-app-accesscontrol=y
-          CONFIG_DEFAULT_luci-app-adbyby-plus=y
-          CONFIG_DEFAULT_luci-app-arpbind=y
-          CONFIG_DEFAULT_luci-app-autoreboot=y
-          CONFIG_DEFAULT_luci-app-ddns=y
-          CONFIG_DEFAULT_luci-app-diskman=y
-          CONFIG_DEFAULT_luci-app-filetransfer=y
-          CONFIG_DEFAULT_luci-app-ipsec-vpnd=y
-          CONFIG_DEFAULT_luci-app-nlbwmon=y
-          CONFIG_DEFAULT_luci-app-ssr-plus=y
-          CONFIG_DEFAULT_luci-app-ttyd=y
-          CONFIG_DEFAULT_luci-app-turboacc=y
-          CONFIG_DEFAULT_luci-app-unblockmusic=y
-          CONFIG_DEFAULT_luci-app-upnp=y
-          CONFIG_DEFAULT_luci-app-vlmcsd=y
-          CONFIG_DEFAULT_luci-app-vsftpd=y
-          CONFIG_DEFAULT_luci-app-wireguard=y
-          CONFIG_DEFAULT_luci-app-wol=y
-          CONFIG_DEFAULT_luci-app-xlnetacc=y
-          CONFIG_DEFAULT_luci-app-zerotier=y
-          CONFIG_DEFAULT_luci-newapi=y
-          CONFIG_DEFAULT_luci-proto-bonding=y
+          CONFIG_PACKAGE_luci=y
+          CONFIG_PACKAGE_luci-app-accesscontrol=y
+          CONFIG_PACKAGE_luci-app-adbyby-plus=y
+          CONFIG_PACKAGE_luci-app-arpbind=y
+          CONFIG_PACKAGE_luci-app-autoreboot=y
+          CONFIG_PACKAGE_luci-app-ddns=y
+          CONFIG_PACKAGE_luci-app-diskman=y
+          CONFIG_PACKAGE_luci-app-filetransfer=y
+          CONFIG_PACKAGE_luci-app-ipsec-vpnd=y
+          CONFIG_PACKAGE_luci-app-nlbwmon=y
+          CONFIG_PACKAGE_luci-app-ssr-plus=y
+          CONFIG_PACKAGE_luci-app-ttyd=y
+          CONFIG_PACKAGE_luci-app-turboacc=y
+          CONFIG_PACKAGE_luci-app-unblockmusic=y
+          CONFIG_PACKAGE_luci-app-upnp=y
+          CONFIG_PACKAGE_luci-app-vlmcsd=y
+          CONFIG_PACKAGE_luci-app-vsftpd=y
+          CONFIG_PACKAGE_luci-app-wireguard=y
+          CONFIG_PACKAGE_luci-app-wol=y
+          CONFIG_PACKAGE_luci-app-xlnetacc=y
+          CONFIG_PACKAGE_luci-app-zerotier=y
+          CONFIG_PACKAGE_luci-newapi=y
+          CONFIG_PACKAGE_luci-proto-bonding=y
           EOF
           )
           echo "$config_data" > .config
