@@ -103,6 +103,7 @@ jobs:
             tmp_line="- \`$line\`"
             apps="$apps$tmp_line\n"
           done
+          echo "apps=$apps" >> $GITHUB_OUTPUT
           
 
       - name: Upload release assets
