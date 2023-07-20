@@ -60,7 +60,7 @@ jobs:
         id: apps
         run: |
           app_list=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
-          apps=$(echo "$apps" | tr "\n" "/")
+          apps=$(echo "$app_list" | tr "\n" "/")
           echo "apps=$apps" >> $GITHUB_OUTPUT          
 
       - name: Upload release assets
