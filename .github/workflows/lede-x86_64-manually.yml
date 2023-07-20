@@ -84,11 +84,12 @@ jobs:
 
       - name: Rename firmwares
         run: |
+          version=$(date +"%Y%m%d")
           for file in $(ls bin/targets/x86/64/openwrt*); do
             if [ -f "$file" ]; then
               ext="${file##*.}"
               filename="${file%.*}"
-              new_file="$filename-$tag.$ext"
+              new_file="$filename-$version.$ext"
               mv "$file" "$new_file"
             fi
           done
