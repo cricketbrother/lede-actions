@@ -60,7 +60,13 @@ jobs:
         id: apps
         run: |
           apps=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
-          echo "apps=\"$apps\"" >> $GITHUB_OUTPUT          
+          IFS=" "
+          read -ra apps <<< "$apps"
+          app_list=""
+          for app in "${apps[@]}"; do
+            app_list="$app_list[$app]"
+          done
+          echo "app_list=$app_list" >> $GITHUB_OUTPUT          
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
