@@ -59,6 +59,7 @@ jobs:
       - name: Get apps
         id: apps
         run: |
+          set -x
           app_list=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
           echo $app_list
           IFS=$'\n' read -r -d ' ' -a apps <<< "$app_list"
