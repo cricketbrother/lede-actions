@@ -37,6 +37,7 @@ jobs:
           CONFIG_PACKAGE_luci-newapi=y
           CONFIG_PACKAGE_luci-proto-bonding=y
           EOF
+          cat .config
 
       - name: Set tag
         id: tag
