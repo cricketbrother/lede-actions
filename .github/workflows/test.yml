@@ -1,4 +1,4 @@
-name: lede-x86_64-manually
+name: test
 
 on:
   workflow_dispatch:
@@ -67,14 +67,6 @@ jobs:
           echo "# CONFIG_PACKAGE_luci-app-xlnetacc is not set" >> .config
           echo "# CONFIG_PACKAGE_luci-app-zerotier is not set" >> .config
           make defconfig
-
-      - name: Make download
-        run: |
-          make download -j8
-
-      - name: Make
-        run: |
-          make -j2
 
       - name: Set tag
         id: tag
