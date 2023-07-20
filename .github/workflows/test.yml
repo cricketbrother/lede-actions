@@ -82,12 +82,7 @@ jobs:
         id: apps
         run: |
           app_list=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
-          IFS=$'\n' read -r -d $'\n' -a lines <<< "$app_list"
-          apps=""
-          for line in "${lines[@]}"; do
-              tmp_line="- $line"
-              apps="$apps$tmp_line\n"
-          done
+          IFS=$'\n' read -r -d $'\n' -a apps <<< "$app_list"
           echo "apps=$apps" >> $GITHUB_OUTPUT
           
 
@@ -105,5 +100,5 @@ jobs:
             3. 本固件包含img/vmdk/qcow2三种格式
             4. 本固件默认管理地址为：[http://192.168.5.1](http://192.168.5.1) ，用户名：root，密码：password
             5. 本固件包含以下APP：
-            ${{ steps.apps.outputs.apps }}
+            ${{ join(steps.apps.outputs.apps, '\n- ') }}
             
