@@ -61,10 +61,10 @@ jobs:
         run: |
           app_list=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
           echo $app_list
-          IFS=$' ' read -r -d $' ' -a apps <<< "$app_list"
-          echo $apps
           IFS=$'\n' read -r -d $'\n' -a apps1 <<< "$app_list"
           echo $apps1
+          IFS=$' ' read -r -d $' ' -a apps <<< "$app_list"
+          echo $apps
           echo "apps=$apps" >> $GITHUB_OUTPUT
           
 
