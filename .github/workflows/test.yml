@@ -71,7 +71,7 @@ jobs:
       - name: Set tag
         id: tag
         run: |
-          tag=$(date +"v%Y.%m.%d")
+          tag=$(date +"v%Y.%m.%d.test")
           echo "tag=$tag" >> $GITHUB_OUTPUT
 
       - name: Rename firmwares
