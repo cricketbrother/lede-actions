@@ -46,7 +46,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Make default config
+      - name: Make config
         run: |
           echo "CONFIG_TARGET_x86=y" > .config
           echo "CONFIG_TARGET_x86_64=y" >> .config
@@ -55,7 +55,19 @@ jobs:
           echo "CONFIG_QCOW2_IMAGES=y" >> .config
           echo "# CONFIG_TARGET_IMAGES_GZIP is not set" >> .config
           echo "CONFIG_PACKAGE_luci-app-passwall=y" >> .config
-          # echo "CONFIG_PACKAGE_luci-app-smartdns=y" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-accesscontrol is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-adbyby-plus is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-arpbind is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-autoreboot is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-ddns is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-ipsec-vpnd is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-nlbwmon is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-unblockmusic is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-vsftpd is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-wireguard is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-wol is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-xlnetacc is not set" >> .config
+          echo "# CONFIG_PACKAGE_luci-app-zerotier is not set" >> .config
           make defconfig
 
       - name: Make download
@@ -72,7 +84,25 @@ jobs:
           tag=$(date +"v%Y.%m.%d")
           echo "tag=$tag" >> $GITHUB_OUTPUT
 
-      - name: Upload release asset
+      - name: Rename firmwares
+        run: |
+          for file in $(ls bin/targets/x86/64/openwrt*); do
+            if [ -f "$file" ]; then
+              ext="${file##*.}"
+              filename="${file%.*}"
+              new_file="$filename-$tag.$ext"
+              mv "$file" "$new_file"
+            fi
+          done
+
+      - name: Get apps
+        id: apps
+        run: |
+          app_list=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
+          apps=$(echo "$app_list" | tr "\n" "/")
+          echo "apps=$apps" >> $GITHUB_OUTPUT          
+  
+      - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
           files: bin/targets/x86/64/*
@@ -82,6 +112,8 @@ jobs:
           body: |
             ## 说明
             1. 本固件基于 [coolsnowwolf/lede](https://github.com/coolsnowwolf/lede) 自动编译而成，适用于x86_64平台
-            2. 本固件在默认配置的基础上，加入ssrp/passwall，增加非EFI和QCOW2格式固件，并且取消GZIP压缩
-            3. 本固件默认管理地址为： [http://192.168.5.1](http://192.168.5.1) ，用户名：root，密码：password
-            
+            2. 本固件包含BIOS和UEFI两种引导方式
+            3. 本固件包含img/vmdk/qcow2三种格式
+            4. 本固件默认管理地址为：[http://192.168.5.1](http://192.168.5.1) ，用户名：root，密码：password
+            5. 本固件包含以下APP：${{ steps.apps.outputs.apps }}
+                      

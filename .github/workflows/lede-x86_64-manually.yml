@@ -96,16 +96,10 @@ jobs:
       - name: Get apps
         id: apps
         run: |
-          app_list=$(cat .config | grep -v "^#" | egrep PACKAGE_luci-app-[^_]*=y)
-          IFS=$'\n' read -r -d '' -a lines <<< "$app_list"
-          apps=""
-          for line in "${lines[@]}"; do
-            tmp_line="- \`$line\`"
-            apps="$apps$tmp_line\n"
-          done
-          echo "apps=$apps" >> $GITHUB_OUTPUT
-          
-
+          app_list=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
+          apps=$(echo "$app_list" | tr "\n" "/")
+          echo "apps=$apps" >> $GITHUB_OUTPUT          
+  
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
@@ -119,6 +113,5 @@ jobs:
             2. 本固件包含BIOS和UEFI两种引导方式
             3. 本固件包含img/vmdk/qcow2三种格式
             4. 本固件默认管理地址为：[http://192.168.5.1](http://192.168.5.1) ，用户名：root，密码：password
-            5. 本固件包含以下APP：
-            ${{ steps.apps.outputs.apps }}
+            5. 本固件包含以下APP：${{ steps.apps.outputs.apps }}
             
