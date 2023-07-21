@@ -84,30 +84,28 @@ jobs:
 
       - name: Rename firmwares
         run: |
-          version=$(date +"%Y%m%d")
+          release_version=$(date +"%Y%m%d")
+          lede_version=$(cat package/lede/default-settings/files/zzz-default-settings | egrep -o "R[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}")
           for file in $(ls bin/targets/x86/64/openwrt*); do
             if [ -f "$file" ]; then
               ext="${file##*.}"
               filename="${file%.*}"
-              new_file="$filename-$version.$ext"
+              new_file="$filename-$lede_version-$release_version.$ext"
               mv "$file" "$new_file"
             fi
           done
 
-      - name: Get apps and packages
+      - name: Get apps
         id: apps
         run: |
           app_list=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
           apps=$(echo "$app_list" | tr "\n" "/")
           echo "apps=$apps" >> $GITHUB_OUTPUT          
-          find bin/targets/x86/64/packages -maxdepth 1 -type f -exec bash -c 'for file; do echo "$(basename "$file")"; done' _ {} + > bin/targets/x86/64/packages/packages.list
   
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            bin/targets/x86/64/*
-            bin/targets/x86/64/packages/packages.list
+          files: bin/targets/x86/64/*
           tag_name: ${{ steps.tag.outputs.tag }}
           draft: false
           prerelease: false
