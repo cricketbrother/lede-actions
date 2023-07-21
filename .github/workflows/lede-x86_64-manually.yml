@@ -79,7 +79,7 @@ jobs:
       - name: Set tag
         id: tag
         run: |
-          tag=$(date +"v%Y.%m.%d")
+          tag=$(date +"v%Y.%m.%d.manually")
           echo "tag=$tag" >> $GITHUB_OUTPUT
 
       - name: Rename firmwares
@@ -94,17 +94,20 @@ jobs:
             fi
           done
 
-      - name: Get apps
+      - name: Get apps and packages
         id: apps
         run: |
           app_list=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
           apps=$(echo "$app_list" | tr "\n" "/")
           echo "apps=$apps" >> $GITHUB_OUTPUT          
+          find bin/targets/x86/64/packages -maxdepth 1 -type f -exec bash -c 'for file; do echo "$(basename "$file")"; done' _ {} + > bin/targets/x86/64/packages/packages.list
   
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
-          files: bin/targets/x86/64/*
+          files: |
+            bin/targets/x86/64/*
+            bin/targets/x86/64/packages/packages.list
           tag_name: ${{ steps.tag.outputs.tag }}
           draft: false
           prerelease: false
