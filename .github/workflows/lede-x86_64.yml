@@ -60,7 +60,6 @@ jobs:
           echo "CONFIG_GRUB_IMAGES=y" >> .config
           echo "CONFIG_QCOW2_IMAGES=y" >> .config
           echo "# CONFIG_TARGET_IMAGES_GZIP is not set" >> .config
-          echo "CONFIG_PACKAGE_luci-app-passwall=y" >> .config
           echo "# CONFIG_PACKAGE_luci-app-accesscontrol is not set" >> .config
           echo "# CONFIG_PACKAGE_luci-app-adbyby-plus is not set" >> .config
           echo "# CONFIG_PACKAGE_luci-app-arpbind is not set" >> .config
