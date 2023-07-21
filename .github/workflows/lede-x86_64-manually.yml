@@ -85,7 +85,7 @@ jobs:
       - name: Rename firmwares
         run: |
           release_version=$(date +"%Y%m%d")
-          lede_version=$(cat package/lede/default-settings/files/zzz-default-settings | egrep -o "R[0-9]{1,2}\.[0-9]{1,2}\.[0-9]{1,2}")
+          lede_version=$(cat package/lede/default-settings/files/zzz-default-settings | egrep -o "R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}")
           for file in $(ls bin/targets/x86/64/openwrt*); do
             if [ -f "$file" ]; then
               ext="${file##*.}"
