@@ -85,7 +85,7 @@ jobs:
       - name: Rename firmwares
         run: |
           release_version=$(date +"%Y%m%d")
-          lede_version=$(cat package/lede/default-settings/files/zzz-default-settings | egrep -o "R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}")
+          lede_version=$(cat package/base-files/files/etc/openwrt_release | grep DISTRIB_RELEASE | awk -F "'" '{print $2}')
           for file in $(ls bin/targets/x86/64/openwrt*); do
             if [ -f "$file" ]; then
               ext="${file##*.}"
@@ -116,4 +116,3 @@ jobs:
             3. 本固件包含img/vmdk/qcow2三种格式
             4. 本固件默认管理地址为：[http://192.168.5.1](http://192.168.5.1) ，用户名：root，密码：password
             5. 本固件包含以下APP：${{ steps.apps.outputs.apps }}
-            
