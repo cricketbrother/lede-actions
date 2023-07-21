@@ -24,6 +24,12 @@ jobs:
           sudo -E apt clean
           sudo -E timedatectl set-timezone "Asia/Shanghai"
 
+      - name: Set tag
+        id: tag
+        run: |
+          tag=$(date +"v%Y.%m.%d.manually")
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+
       - name: Checkout source code
         uses: actions/checkout@v3
         with:
@@ -75,12 +81,6 @@ jobs:
       - name: Make
         run: |
           make -j2
-
-      - name: Set tag
-        id: tag
-        run: |
-          tag=$(date +"v%Y.%m.%d.manually")
-          echo "tag=$tag" >> $GITHUB_OUTPUT
 
       - name: Rename firmwares
         run: |

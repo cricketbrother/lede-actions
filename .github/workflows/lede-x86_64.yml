@@ -26,6 +26,12 @@ jobs:
           sudo -E apt clean
           sudo -E timedatectl set-timezone "Asia/Shanghai"
 
+      - name: Set tag
+        id: tag
+        run: |
+          tag=$(date +"v%Y.%m.%d.manually")
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+
       - name: Checkout source code
         uses: actions/checkout@v3
         with:
@@ -78,20 +84,15 @@ jobs:
         run: |
           make -j2
 
-      - name: Set tag
-        id: tag
-        run: |
-          tag=$(date +"v%Y.%m.%d")
-          echo "tag=$tag" >> $GITHUB_OUTPUT
-
       - name: Rename firmwares
         run: |
-          version=$(date +"%Y%m%d")
+          release_version=$(date +"%Y%m%d")
+          lede_version=$(cat package/lede/default-settings/files/zzz-default-settings | egrep -o "R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}")
           for file in $(ls bin/targets/x86/64/openwrt*); do
             if [ -f "$file" ]; then
               ext="${file##*.}"
               filename="${file%.*}"
-              new_file="$filename-$version.$ext"
+              new_file="$filename-$lede_version-$release_version.$ext"
               mv "$file" "$new_file"
             fi
           done
@@ -117,4 +118,4 @@ jobs:
             3. 本固件包含img/vmdk/qcow2三种格式
             4. 本固件默认管理地址为：[http://192.168.5.1](http://192.168.5.1) ，用户名：root，密码：password
             5. 本固件包含以下APP：${{ steps.apps.outputs.apps }}
-                      
+            
