@@ -10,71 +10,19 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Install compilation dependencies
-        run: |
-          cat << EOF > .config
-          CONFIG_PACKAGE_luci=y
-          CONFIG_PACKAGE_luci-app-accesscontrol=y
-          CONFIG_PACKAGE_luci-app-adbyby-plus=y
-          CONFIG_PACKAGE_luci-app-arpbind=y
-          CONFIG_PACKAGE_luci-app-autoreboot=y
-          CONFIG_PACKAGE_luci-app-ddns=y
-          CONFIG_PACKAGE_luci-app-diskman=y
-          CONFIG_PACKAGE_luci-app-filetransfer=y
-          CONFIG_PACKAGE_luci-app-ipsec-vpnd=y
-          CONFIG_PACKAGE_luci-app-nlbwmon=y
-          CONFIG_PACKAGE_luci-app-ssr-plus=y
-          CONFIG_PACKAGE_luci-app-ttyd=y
-          CONFIG_PACKAGE_luci-app-turboacc=y
-          CONFIG_PACKAGE_luci-app-unblockmusic=y
-          CONFIG_PACKAGE_luci-app-upnp=y
-          CONFIG_PACKAGE_luci-app-vlmcsd=y
-          CONFIG_PACKAGE_luci-app-vsftpd=y
-          CONFIG_PACKAGE_luci-app-wireguard=y
-          CONFIG_PACKAGE_luci-app-wol=y
-          CONFIG_PACKAGE_luci-app-xlnetacc=y
-          CONFIG_PACKAGE_luci-app-zerotier=y
-          CONFIG_PACKAGE_luci-newapi=y
-          CONFIG_PACKAGE_luci-proto-bonding=y
-          EOF
-          cat .config
+      - name: Create a file
+        run: echo "Hello World" > 1.txt
 
       - name: Set tag
         id: tag
         run: |
           tag=$(date +"v%Y.%m.%d.test")
-          echo "tag=$tag" >> $GITHUB_OUTPUT
-
-      - name: Rename firmwares
-        run: |
-          for file in $(ls bin/targets/x86/64/openwrt*); do
-            if [ -f "$file" ]; then
-              ext="${file##*.}"
-              filename="${file%.*}"
-              new_file="$filename-$tag.$ext"
-              mv "$file" "$new_file"
-            fi
-          done
-
-      - name: Get apps
-        id: apps
-        run: |
-          app_list=$(cat .config | grep -v "^#" | egrep "PACKAGE_luci-app-[^_]*=y" | egrep -o "luci-app-[^=]*[a-zA-Z0-9]")
-          apps=$(echo "$app_list" | tr "\n" "/")
-          echo "apps=$apps" >> $GITHUB_OUTPUT          
+          echo "tag=$tag" >> $GITHUB_OUTPUT    
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v1
         with:
-          files: bin/targets/x86/64/*
+          files: 1.txt
           tag_name: ${{ steps.tag.outputs.tag }}
           draft: false
           prerelease: false
-          body: |
-            ## 说明
-            1. 本固件基于 [coolsnowwolf/lede](https://github.com/coolsnowwolf/lede) 自动编译而成，适用于x86_64平台
-            2. 本固件包含BIOS和UEFI两种引导方式
-            3. 本固件包含img/vmdk/qcow2三种格式
-            4. 本固件默认管理地址为：[http://192.168.5.1](http://192.168.5.1) ，用户名：root，密码：password
-            5. 本固件包含以下APP：${{ steps.apps.outputs.apps }}
-            
