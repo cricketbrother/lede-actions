@@ -81,7 +81,7 @@ jobs:
 
       - name: Make
         run: |
-          make -j1
+          make -j2
 
       - name: Rename firmwares
         id: lede_version
