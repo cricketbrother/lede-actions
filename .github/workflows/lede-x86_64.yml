@@ -73,6 +73,7 @@ jobs:
           echo "# CONFIG_PACKAGE_luci-app-wol is not set" >> .config
           echo "# CONFIG_PACKAGE_luci-app-xlnetacc is not set" >> .config
           echo "# CONFIG_PACKAGE_luci-app-zerotier is not set" >> .config
+          echo "CONFIG_PACKAGE_luci-app-ttyd=y" >> .config
           make defconfig
 
       - name: Make download
