@@ -39,5 +39,5 @@ jobs:
       - name: Compile
         run: |
           make defconfig
-          make download V=s
-          make -j2 V=s
+          make download -j$(nproc)
+          make -j$(nproc)
