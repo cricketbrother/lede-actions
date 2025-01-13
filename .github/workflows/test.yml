@@ -29,4 +29,13 @@ jobs:
         run: |
           pwd
           ls -l
+
+      - name: Move
+        run: cp -R ./ /mnt
+
+      - name: Info1
+        run: |
+          cd /mnt
+          pwd
+          ls -l
           
