@@ -18,9 +18,9 @@ jobs:
 
       - name: Move to /mnt
         run: |
-          mkdir -p /mnt/lede
-          cp -R ./ /mnt/lede
-          chown -R $USER:$GROUP /mnt/lede
-          ls -l /mnt
-          ls -l /mnt/lede
+          sudo mkdir -p /mnt/lede
+          sudo cp -R ./ /mnt/lede
+          sudo chown -R $USER:$GROUP /mnt/lede
+          sudo ls -l /mnt
+          sudo ls -l /mnt/lede
           
