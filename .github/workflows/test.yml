@@ -18,3 +18,12 @@ jobs:
 
       - name: Disk List
         run: sudo fdisk -l
+
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Info
+        run: |
+          pwd
+          ll -l
+          
