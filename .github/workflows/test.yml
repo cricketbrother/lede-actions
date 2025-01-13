@@ -40,4 +40,4 @@ jobs:
         run: |
           make defconfig
           make download -j$(nproc)
-          make -j$(nproc)
+          make -j2 V=s
