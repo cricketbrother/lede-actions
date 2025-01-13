@@ -15,3 +15,6 @@ jobs:
         
       - name: Disk Usage
         run: df -h
+
+      - name: Disk List
+        run: sudo fdisk -l
