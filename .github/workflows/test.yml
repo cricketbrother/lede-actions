@@ -17,39 +17,44 @@ jobs:
       WORKSPACE: /mnt/lede
 
     steps:
+      - name: 获取系统信息
+        run: |
+          echo 处理器: $(cat /proc/cpuinfo | grep "model name" | head -n1 | awk -F ': ' '{print $2}') x$(nproc)
+          echo 内存: $(free -m | grep Mem | awk '{print $2}')MB
+    
       - name: 创建工作目录
         run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE 
 
-      - name: 安装依赖
-        run: |
-          sudo apt update -y
-          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-          bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
-          genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
-          libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
-          libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
-          python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
-          swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev\
+      # - name: 安装依赖
+      #   run: |
+      #     sudo apt update -y
+      #     sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+      #     bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
+      #     genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
+      #     libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
+      #     libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
+      #     python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
+      #     swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev\
 
       - name: 编译前磁盘剩余空间
         run: df -h
 
-      - name: 克隆代码
-        uses: actions/checkout@main
-        with:
-          repository: coolsnowwolf/lede
-          ref: master
+      # - name: 克隆代码
+      #   uses: actions/checkout@main
+      #   with:
+      #     repository: coolsnowwolf/lede
+      #     ref: master
 
-      - name: 移动代码到工作目录
-        run: mv ./* ${{ env.WORKSPACE }}
+      # - name: 移动代码到工作目录
+      #   run: mv ./* ${{ env.WORKSPACE }}
 
-      - name: 更新Feeds
-        run: pwd && ./scripts/feeds update -a && ./scripts/feeds install -a
-        working-directory: ${{ env.WORKSPACE }}
+      # - name: 更新Feeds
+      #   run: pwd && ./scripts/feeds update -a && ./scripts/feeds install -a
+      #   working-directory: ${{ env.WORKSPACE }}
 
-      - name: 编译固件
-        run: make defconfig && make download -j$(nproc) && make -j2 V=s
-        working-directory: ${{ env.WORKSPACE }}
+      # - name: 编译固件
+      #   run: make defconfig && make download -j$(nproc) && make -j2 V=s
+      #   working-directory: ${{ env.WORKSPACE }}
 
       - name: 编译后磁盘剩余空间
         run: df -h
