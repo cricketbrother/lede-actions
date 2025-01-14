@@ -23,11 +23,7 @@ echo "编译前/mnt剩余空间: "$(df -h | grep '/mnt' | awk '{print $4}') 2>&1
 
 # 克隆源代码
 echo ">>> 克隆源代码" 2>&1 | tee -a lede.log
-git clone https://github.com/coolsnowwolf/lede.git 2>&1 | tee -a lede.log
-
-# 切换到源码目录
-echo ">>> 切换到源码目录" 2>&1 | tee -a lede.log
-cd lede 2>&1 | tee -a lede.log
+git clone https://github.com/coolsnowwolf/lede.git ./ 2>&1 | tee -a lede.log
 
 # 获取固件版本
 echo ">>> 获取固件版本" 2>&1 | tee -a lede.log
