@@ -19,7 +19,7 @@ jobs:
         working-directory: /mnt
 
     env:
-      WORKSPACE: $GITHUB_WORKSPACE/workspace
+      WORKSPACE: ${{ GITHUB_WORKSPACE }}/workspace
 
     steps:
       - name: 创建工作目录
