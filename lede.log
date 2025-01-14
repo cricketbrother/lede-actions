@@ -5,10 +5,8 @@
 >>> 获取系统剩余空间
 编译前/mnt剩余空间: 66G
 >>> 克隆源代码
-Cloning into 'lede'...
-Updating files:  82% (12811/15501)Updating files:  83% (12866/15501)Updating files:  84% (13021/15501)Updating files:  85% (13176/15501)Updating files:  86% (13331/15501)Updating files:  87% (13486/15501)Updating files:  88% (13641/15501)Updating files:  89% (13796/15501)Updating files:  90% (13951/15501)Updating files:  91% (14106/15501)Updating files:  92% (14261/15501)Updating files:  93% (14416/15501)Updating files:  94% (14571/15501)Updating files:  95% (14726/15501)Updating files:  96% (14881/15501)Updating files:  97% (15036/15501)Updating files:  98% (15191/15501)Updating files:  99% (15346/15501)Updating files: 100% (15501/15501)Updating files: 100% (15501/15501), done.
->>> 切换到源码目录
+fatal: destination path '.' already exists and is not an empty directory.
 >>> 获取固件版本
 固件版本:
 >>> 获取系统剩余空间
-编译后/mnt剩余空间: 65G
+编译后/mnt剩余空间: 66G
