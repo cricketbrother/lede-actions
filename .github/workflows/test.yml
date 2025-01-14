@@ -17,10 +17,6 @@ jobs:
       WORKSPACE: /mnt/workspace
 
     steps:
-      # - name: 获取系统信息
-      #   run: |
-      #     echo 处理器: $(cat /proc/cpuinfo | grep "model name" | head -n1 | awk -F ': ' '{print $2}') $(cat /proc/cpuinfo | grep "cpu cores" | head -n1 | awk -F ': ' '{print $2}')核心$(nproc)线程
-      #     echo 内存: $(free -m | grep Mem | awk '{print $2}')MB
     
       - name: 创建工作目录
         run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE 
@@ -33,49 +29,18 @@ jobs:
           sudo cp lede.sh $WORKSPACE
           sudo chmod +x $WORKSPACE/lede.sh
 
-      # - name: 安装依赖
-      #   run: |
-      #     sudo apt update -y
-      #     sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-      #     bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
-      #     genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
-      #     libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
-      #     libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
-      #     python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
-      #     swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev\
-
       - name: 编译LEDE固件
         run: ./lede.sh
         working-directory: ${{ env.WORKSPACE }}
 
-      # - name: 编译前磁盘剩余空间
-      #   run: |
-      #     echo "编译前/mnt剩余空间: "$(df -h | grep '/mnt' | awk '{print $4}')
-
-      # - name: 克隆lede代码
-      #   uses: actions/checkout@main
-      #   with:
-      #     repository: coolsnowwolf/lede
-      #     ref: master
-
-      # - name: 移动lede代码到工作目录
-      #   run: mv ./* ${{ env.WORKSPACE }}
-
-      # - name: 更新Feeds
-      #   run: pwd && ./scripts/feeds update -a && ./scripts/feeds install -a
-      #   working-directory: ${{ env.WORKSPACE }}
-
-      # - name: 编译固件
-      #   run: make defconfig && make download -j$(nproc) && make -j2 V=s
-      #   working-directory: ${{ env.WORKSPACE }}
-
-      # - name: 编译后磁盘剩余空间
-      #   run: |
-      #     echo "编译后/mnt剩余空间: "$(df -h | grep '/mnt' | awk '{print $4}')
+      - name: 创建或清理固件目录
+        run: |
+          sudo mkdir -p ./firmware/$(cat ${{ env.WORKSPACE }}/lede.version)
+          sudo rm -rf ./firmware/$(cat ${{ env.WORKSPACE }}/lede.version)/*
 
       - name: 上传固件、日志
         run: |
-          cp ${{ env.WORKSPACE }}/lede.log ./
+          cp ${{ env.WORKSPACE }}/lede.* ./
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           git add .

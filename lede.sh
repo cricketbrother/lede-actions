@@ -29,6 +29,11 @@ git clone https://github.com/coolsnowwolf/lede.git 2>&1 | tee -a lede.log
 echo ">>> 切换到源码目录" 2>&1 | tee -a lede.log
 cd lede 2>&1 | tee -a lede.log
 
+# 获取固件版本
+echo ">>> 获取固件版本" 2>&1 | tee -a lede.log
+echo 固件版本: $(cat package/lean/default-settings/files/zzz-default-settings | egrep -o "R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}") 2>&1 | tee -a lede.log
+echo $(cat package/lean/default-settings/files/zzz-default-settings | egrep -o "R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}") > lede.version
+
 # 更新Feeds
 # echo ">>> 更新Feeds" 2>&1 | tee -a lede.log
 # ./scripts/feeds update -a 2>&1 | tee -a lede.log
