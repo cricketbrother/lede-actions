@@ -13,17 +13,12 @@ jobs:
   build:
     runs-on: ubuntu-24.04
 
-    defaults:
-      run:
-        shell: bash
-        working-directory: /mnt
-
     env:
-      WORKSPACE: /mnt/workspace
+      WORKSPACE: /mnt/lede
 
     steps:
       - name: 创建工作目录
-        run: sudo mkdir -p $WORKSPACE/lede && sudo chown -R $USER:$GROUP $WORKSPACE 
+        run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE 
 
       # - name: 安装依赖
       #   run: |
@@ -41,12 +36,14 @@ jobs:
         with:
           repository: coolsnowwolf/lede
           ref: master
-          path: ./workspace/lede
+
+      - name: 移动代码到工作目录
+        run: mv ./* ${{ env.WORKSPACE }}/lede
 
       - name: 更新Feeds
         run: pwd && ./scripts/feeds update -a && ./scripts/feeds install -a
-        working-directory: ${{ env.WORKSPACE }}/lede
+        working-directory: ${{ env.WORKSPACE }}
 
       - name: 编译固件
         run: make defconfig && make download -j$(nproc) && make -j2 V=s
-        working-directory: ${{ env.WORKSPACE }}/lede
+        working-directory: ${{ env.WORKSPACE }}
