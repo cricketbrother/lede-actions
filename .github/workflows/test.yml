@@ -38,7 +38,7 @@ jobs:
           ref: master
 
       - name: 移动代码到工作目录
-        run: mv ./* ${{ env.WORKSPACE }}/lede
+        run: mv ./* ${{ env.WORKSPACE }}
 
       - name: 更新Feeds
         run: pwd && ./scripts/feeds update -a && ./scripts/feeds install -a
