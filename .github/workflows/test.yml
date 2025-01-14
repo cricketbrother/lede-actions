@@ -39,8 +39,8 @@ jobs:
 
       - name: 更新Feeds
         run: ./scripts/feeds update -a && ./scripts/feeds install -a
-        working-directory: $WORKSPACE/lede
+        working-directory: ${{ env.WORKSPACE }}/lede
 
       - name: 编译固件
         run: make defconfig && make download -j$(nproc) && make -j2 V=s
-        working-directory: $WORKSPACE/lede
+        working-directory: ${{ env.WORKSPACE }}/lede
