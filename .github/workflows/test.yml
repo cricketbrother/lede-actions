@@ -14,34 +14,38 @@ jobs:
     runs-on: ubuntu-24.04
 
     env:
-      WORKSPACE: /mnt/workspace/lede
+      WS_LEDE: /mnt/workspace/lede
+      WS_LEDE_ACTIONS: /mnt/workspace/lede-actions
+      WS_TEMP: /mnt/workspace/temp
 
     steps:
     
       - name: 创建工作目录
-        run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE && pwd
+        run: |
+          sudo mkdir -p $WS_LEDE && sudo chown -R $USER:$GROUP $WS_LEDE
+          sudo mkdir -p $WS_LEDE_ACTIONS && sudo chown -R $USER:$GROUP $WS_LEDE_ACTIONS
+          sudo mkdir -p $WS_TEMP && sudo chown -R $USER:$GROUP $WS_TEMP
 
       - name: 检出代码
         uses: actions/checkout@main
 
-      - name: 复制lede.sh到工作目录
+      - name: 复制lede.sh到TEMP目录
         run: |
-          pwd
-          sudo cp lede.sh $WORKSPACE
-          sudo chmod +x $WORKSPACE/lede.sh
+          sudo cp lede.sh $WS_TEMP
+          sudo chmod +x $WS_TEMP/lede.sh
 
       - name: 编译LEDE固件
-        run: ./lede.sh
-        working-directory: ${{ env.WORKSPACE }}
+        run: ./$WS_TEMP/lede.sh
+        working-directory: ${{ env.WS_LEDE }}
 
       - name: 创建或清理固件目录
         run: |
-          sudo mkdir -p ./firmware/$(cat ${{ env.WORKSPACE }}/lede.version)
-          sudo rm -rf ./firmware/$(cat ${{ env.WORKSPACE }}/lede.version)/*
+          sudo mkdir -p ./firmware/$(cat ${{ env.WS_TEMP }}/lede.version)
+          sudo rm -rf ./firmware/$(cat ${{ env.WS_TEMP }}/lede.version)/*
 
       - name: 上传固件、日志
         run: |
-          cp ${{ env.WORKSPACE }}/lede.* ./
+          cp ${{ env.WS_TEMP }}/lede.* ./
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           git add .
