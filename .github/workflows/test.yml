@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: 获取系统信息
         run: |
-          echo 处理器: $(cat /proc/cpuinfo | grep "model name" | head -n1 | awk -F ': ' '{print $2}') x$(nproc)
+          echo 处理器: $(cat /proc/cpuinfo | grep "model name" | head -n1 | awk -F ': ' '{print $2}') $(cat /proc/cpuinfo | grep "cpu cores" | head -n1 | awk -F ': ' '{print $2}')核心$(nproc)线程
           echo 内存: $(free -m | grep Mem | awk '{print $2}')MB
     
       - name: 创建工作目录
@@ -37,7 +37,8 @@ jobs:
       #     swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev\
 
       - name: 编译前磁盘剩余空间
-        run: df -h
+        run: |
+          echo "编译前/mnt剩余空间: "$(df -h | grep '/mnt' | awk '{print $4}')
 
       # - name: 克隆代码
       #   uses: actions/checkout@main
@@ -57,4 +58,5 @@ jobs:
       #   working-directory: ${{ env.WORKSPACE }}
 
       - name: 编译后磁盘剩余空间
-        run: df -h
+        run: |
+          echo "编译后/mnt剩余空间: "$(df -h | grep '/mnt' | awk '{print $4}')
