@@ -35,7 +35,7 @@ jobs:
         run: git clone https://github.com/coolsnowwolf/lede.git
 
       - name: 更新Feeds
-        run: ./scripts/feeds update -a && ./scripts/feeds install -a
+        run: cd $WORKSPACE/lede && ./scripts/feeds update -a && ./scripts/feeds install -a
 
       - name: 编译固件
         run: make defconfig && make download -j$(nproc) && make -j2 V=s
