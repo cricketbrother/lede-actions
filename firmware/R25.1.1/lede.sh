@@ -38,7 +38,7 @@ echo $(cat package/lean/default-settings/files/zzz-default-settings | egrep -o "
 echo ">>> 修改Feeds配置" 2>&1 | tee -a $log_file
 sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default 2>&1 | tee -a $log_file
 
-更新Feeds
+# 更新Feeds
 echo ">>> 更新Feeds" 2>&1 | tee -a $log_file
 ./scripts/feeds update -a 2>&1 | tee -a $log_file
 ./scripts/feeds install -a 2>&1 | tee -a $log_file
