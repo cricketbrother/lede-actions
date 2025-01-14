@@ -19,7 +19,7 @@ jobs:
         working-directory: /mnt
 
     env:
-      WORKSPACE: ${{ defaults.run.working-directory }}/workspace
+      WORKSPACE: /mnt/workspace
 
     steps:
       - name: 创建工作目录
@@ -41,7 +41,7 @@ jobs:
         with:
           repository: coolsnowwolf/lede
           ref: master
-          path: /workspace
+          path: ./workspace
 
       - name: 更新Feeds
         run: ./scripts/feeds update -a && ./scripts/feeds install -a
