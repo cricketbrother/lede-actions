@@ -29,22 +29,12 @@ jobs:
 
       - name: 切换到工作目录
         run: cd $WORKSPACE
-        
-                uses: actions/checkout@main
-        with:
-          repository: coolsnowwolf/lede
-          ref: master
 
-      - name: Move to /mnt
-        run: sudo mkdir -p /mnt/lede && sudo cp -R ./ /mnt/lede && sudo chown -R $USER:$GROUP /mnt/lede
+      - name: 克隆代码
+        run: git clone https://github.com/coolsnowwolf/lede.git
 
-      - name: Update Feeds
-        run: |
-          cd /mnt/lede
-          ./scripts/feeds update -a
-          ./scripts/feeds install -a
-      - name: Compile
-        run: |
-          make defconfig
-          make download -j$(nproc)
-          make -j2 V=s
+      - name: 更新Feeds
+        run: cd /mnt/lede && ./scripts/feeds update -a && ./scripts/feeds install -a
+
+      - name: 编译固件
+        run: make defconfig && make download -j$(nproc) && make -j2 V=s
