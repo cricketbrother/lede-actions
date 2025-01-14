@@ -3,7 +3,7 @@ name: test
 on:
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
 
 permissions:
@@ -44,7 +44,7 @@ jobs:
           path: ./workspace/lede
 
       - name: 更新Feeds
-        run: ./scripts/feeds update -a && ./scripts/feeds install -a
+        run: pwd && ./scripts/feeds update -a && ./scripts/feeds install -a
         working-directory: ${{ env.WORKSPACE }}/lede
 
       - name: 编译固件
