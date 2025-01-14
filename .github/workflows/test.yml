@@ -28,6 +28,11 @@ jobs:
       - name: 检出代码
         uses: actions/checkout@main
 
+      - name: 复制lede.sh到工作目录
+        run: |
+          sudo cp lede.sh $WORKSPACE
+          sudo chmod +x $WORKSPACE/lede.sh
+
       # - name: 安装依赖
       #   run: |
       #     sudo apt update -y
@@ -40,7 +45,7 @@ jobs:
       #     swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev\
 
       - name: 编译LEDE固件
-        run: bash lede.sh
+        run: ./lede.sh
         working-directory: ${{ env.WORKSPACE }}
 
       - name: 编译前磁盘剩余空间
