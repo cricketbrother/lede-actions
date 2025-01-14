@@ -13,6 +13,10 @@ jobs:
     env:
       WORKSPACE: /mnt/workspace
 
+    defaults:
+      run:
+        working-directory: ${{ env.WORKSPACE }}
+
     steps:
       - name: 安装依赖
         run: |
@@ -28,14 +32,14 @@ jobs:
       - name: 创建工作目录
         run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE
 
-      - name: 切换到工作目录
-        run: cd $WORKSPACE
-
       - name: 克隆代码
-        run: git clone https://github.com/coolsnowwolf/lede.git
+        uses: actions/checkout@main
+        with:
+          repo: coolsnowwolf/lede
+          ref: master
 
       - name: 更新Feeds
-        run: cd $WORKSPACE/lede && ./scripts/feeds update -a && ./scripts/feeds install -a
+        run: ./scripts/feeds update -a && ./scripts/feeds install -a
 
       - name: 编译固件
         run: make defconfig && make download -j$(nproc) && make -j2 V=s
