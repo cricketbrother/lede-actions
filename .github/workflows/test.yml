@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: 创建工作目录
-        run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE 
+        run: sudo mkdir -p $WORKSPACE/lede && sudo chown -R $USER:$GROUP $WORKSPACE 
 
       # - name: 安装依赖
       #   run: |
@@ -35,10 +35,12 @@ jobs:
           ref: master
 
       - name: 移动代码到工作目录
-        run: mv lede $WORKSPACE/lede
+        run: mv ./* $WORKSPACE/lede
 
       - name: 更新Feeds
         run: ./scripts/feeds update -a && ./scripts/feeds install -a
+        working-directory: $WORKSPACE/lede
 
       - name: 编译固件
         run: make defconfig && make download -j$(nproc) && make -j2 V=s
+        working-directory: $WORKSPACE/lede
