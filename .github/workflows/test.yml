@@ -13,10 +13,6 @@ jobs:
     env:
       WORKSPACE: /mnt/workspace
 
-    defaults:
-      run:
-        working-directory: ${{ env.WORKSPACE }}
-
     steps:
       - name: 创建工作目录
         run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE 
@@ -37,6 +33,7 @@ jobs:
         with:
           repo: coolsnowwolf/lede
           ref: master
+          path: ${{ env.WORKSPACE }}
 
       - name: 更新Feeds
         run: ./scripts/feeds update -a && ./scripts/feeds install -a
