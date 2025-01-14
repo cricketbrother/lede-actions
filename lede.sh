@@ -26,7 +26,7 @@ echo "编译前/mnt剩余空间: "$(df -h | grep '/mnt' | awk '{print $4}') 2>&1
 
 # 克隆源代码
 echo ">>> 克隆源代码" 2>&1 | tee -a log_file
-ll -h
+ls -lh
 git clone https://github.com/coolsnowwolf/lede.git ./ 2>&1 | tee -a log_file
 
 # 获取固件版本
