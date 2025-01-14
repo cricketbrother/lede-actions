@@ -35,7 +35,7 @@ jobs:
           sudo chmod +x $WS_TEMP/lede.sh
 
       - name: 编译LEDE固件
-        run: ./$WS_TEMP/lede.sh
+        run: $WS_TEMP/lede.sh
         working-directory: ${{ env.WS_LEDE }}
 
       - name: 创建或清理固件目录
