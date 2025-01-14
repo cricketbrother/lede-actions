@@ -10,8 +10,13 @@ jobs:
   build:
     runs-on: ubuntu-24.04
 
+    defaults:
+      run:
+        shell: bash
+        working-directory: /mnt
+
     env:
-      WORKSPACE: /mnt/workspace
+      WORKSPACE: ${{ GITHUB_WORKSPACE }}/workspace
 
     steps:
       - name: 创建工作目录
@@ -33,7 +38,7 @@ jobs:
         with:
           repository: coolsnowwolf/lede
           ref: master
-          path: ${{ env.WORKSPACE }}
+          path: /workspace
 
       - name: 更新Feeds
         run: ./scripts/feeds update -a && ./scripts/feeds install -a
