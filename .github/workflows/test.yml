@@ -33,9 +33,7 @@ jobs:
         with:
           repository: coolsnowwolf/lede
           ref: master
-
-      - name: 移动代码到工作目录
-        run: mv ./* $WORKSPACE/lede
+          path: ${{ env.WORKSPACE }}
 
       - name: 更新Feeds
         run: ./scripts/feeds update -a && ./scripts/feeds install -a
