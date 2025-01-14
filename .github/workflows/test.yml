@@ -31,7 +31,7 @@ jobs:
       - name: 克隆代码
         uses: actions/checkout@main
         with:
-          repo: coolsnowwolf/lede
+          repository: coolsnowwolf/lede
           ref: master
           path: ${{ env.WORKSPACE }}
 
