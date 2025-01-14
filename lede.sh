@@ -31,6 +31,7 @@ cd lede 2>&1 | tee -a lede.log
 
 # 获取固件版本
 echo ">>> 获取固件版本" 2>&1 | tee -a lede.log
+pwd
 echo 固件版本: $(cat package/lean/default-settings/files/zzz-default-settings | egrep -o "R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}") 2>&1 | tee -a lede.log
 echo $(cat package/lean/default-settings/files/zzz-default-settings | egrep -o "R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}") > lede.version
 
