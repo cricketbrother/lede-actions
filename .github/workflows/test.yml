@@ -19,13 +19,14 @@ jobs:
     steps:
     
       - name: 创建工作目录
-        run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE 
+        run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE && pwd
 
       - name: 检出代码
         uses: actions/checkout@main
 
       - name: 复制lede.sh到工作目录
         run: |
+          pwd
           sudo cp lede.sh $WORKSPACE
           sudo chmod +x $WORKSPACE/lede.sh
 
