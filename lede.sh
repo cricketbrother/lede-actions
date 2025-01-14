@@ -129,11 +129,11 @@ echo "# CONFIG_PARTED_LVM2 is not set" >> .config
 echo "CONFIG_PACKAGE_attr=y" >> .config
 echo "CONFIG_PACKAGE_ttyd=y" >> .config
 echo "CONFIG_PACKAGE_dbus=y" >> .config
-echo "CONFIG_PACKAGE_smartmontools=y >> .config
+echo "CONFIG_PACKAGE_smartmontools=y" >> .config
 make defconfig 2>&1 | tee -a $log_file
 
 # 编译
-echo ">>> 编译"
+echo ">>> 编译" | tee -a $log_file
 make download -j$(nproc) V=s 2>&1 | tee -a $log_file
 make -j2 V=s 2>&1 | tee -a $log_file
 
