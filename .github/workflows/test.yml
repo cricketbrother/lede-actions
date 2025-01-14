@@ -25,6 +25,9 @@ jobs:
       - name: 创建工作目录
         run: sudo mkdir -p $WORKSPACE && sudo chown -R $USER:$GROUP $WORKSPACE 
 
+      - name: 检出代码
+        uses: actions/checkout@main
+
       # - name: 安装依赖
       #   run: |
       #     sudo apt update -y
