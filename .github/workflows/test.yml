@@ -25,7 +25,7 @@ jobs:
           cpu_cores=$(cat /proc/cpuinfo | grep 'cpu cores' | head -n1 | awk -F ': ' '{print $2}')
           cpu_threads=$(nproc)
           mem_total=$(free -m | grep 'Mem' | awk '{print $2}')
-          os_version=$(lsb_release -a | grep 'Description' | awk -F ': ' '{print $2}')
+          os_version=$(lsb_release -a | grep 'Description' | awk -F ':\t' '{print $2}')
           echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程"
           echo "内存: $mem_total MB"
           echo "操作系统: $os_version"
@@ -49,16 +49,16 @@ jobs:
           repository: coolsnowwolf/lede
           path: ${{ env.PATH_LEDE }}
 
-      # - name: 安装依赖
-      #   run: |
-      #     sudo apt update -y
-      #     sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-      #     bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
-      #     genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
-      #     libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
-      #     libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
-      #     python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
-      #     swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
+      - name: 安装依赖
+        run: |
+          sudo apt update -y
+          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
+          genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
+          libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
+          libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
+          python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
+          swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
 
       - name: 移动LEDE仓库到工作目录
         run: |
@@ -87,15 +87,15 @@ jobs:
           echo "tag=$tag" >> $GITHUB_OUTPUT
         working-directory: ${{ env.WS_LEDE }}
 
-      # - name: 下载编译依赖
-      #   run: |
-      #     make download -j$(nproc) || make download -j1 || make download -j1 V=s
-      #   working-directory: ${{ env.WS_LEDE }}
+      - name: 下载编译依赖
+        run: |
+          make download -j$(nproc) || make download -j1 || make download -j1 V=s
+        working-directory: ${{ env.WS_LEDE }}
 
-      # - name: 编译固件
-      #   run: |
-      #     make -j$(nproc) || make -j1 || make -j1 V=s
-      #   working-directory: ${{ env.WS_LEDE }}
+      - name: 编译固件
+        run: |
+          make -j$(nproc) || make -j1 || make -j1 V=s
+        working-directory: ${{ env.WS_LEDE }}
 
       - name: 获取编译后/mnt剩余空间
         run: |
@@ -108,3 +108,6 @@ jobs:
           tag_name: ${{ steps.config.outputs.tag }}
           draft: false
           prerelease: false
+          body: |
+            lede-x86-64
+
