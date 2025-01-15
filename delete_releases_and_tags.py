@@ -65,4 +65,4 @@ repo_name = "cricketbrother/lede-actions"
 repo = get_repo(g, repo_name)
 
 # 删除仓库中旧的发布版本，以保持仓库的整洁和一致性
-delete_old_releases(repo)
+delete_old_releases(repo, 0)
