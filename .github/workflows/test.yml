@@ -26,8 +26,8 @@ jobs:
           cpu_threads=$(nproc)
           mem_total=$(free -m | grep 'Mem' | awk '{print $2}')
           os_version=$(lsb_release -a | grep 'Description' | awk -F ': ' '{print $2}')
-          echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程
-          echo "内存: $mem_total MB
+          echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程"
+          echo "内存: $mem_total MB"
           echo "操作系统: $os_version"
       
       - name: 获取编译前/mnt剩余空间
@@ -37,7 +37,6 @@ jobs:
       - name: 创建工作目录
         run: |
           sudo mkdir -p $WS_LEDE && sudo chown -R $USER:$GROUP $WS_LEDE
-          sudo mkdir -p $WS_TEMP && sudo chown -R $USER:$GROUP $WS_TEMP
 
       - name: 检出本仓库
         uses: actions/checkout@main
