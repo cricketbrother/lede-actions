@@ -28,7 +28,7 @@ jobs:
           os_version=$(lsb_release -a | grep 'Description' | awk -F ': ' '{print \$2}')
           echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程\n内存: $mem_total MB\n操作系统: $os_version"
       
-      - name: 获取/mnt剩余空间
+      - name: 获取编译前/mnt剩余空间
         run: |
           echo "/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print \$4}')"
 
@@ -49,7 +49,7 @@ jobs:
           path: $PATH_LEDE
 
       - name: 安装依赖
-        run : |
+        run: |
           sudo apt update -y
           sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
           bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
@@ -95,9 +95,9 @@ jobs:
       #     make -j$(nproc) || make -j1 || make -j1 V=s
       #   working-directory: ${{ env.WS_LEDE }}
 
-      - name: 获取/mnt剩余空间
-      run: |
-        echo "/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print \$4}')"
+      - name: 获取编译后/mnt剩余空间
+        run: |
+          echo "/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print \$4}')"
 
       - name: 上传发行版
         uses: softprops/action-gh-release@main
