@@ -21,16 +21,16 @@ jobs:
     steps:
       - name: 获取虚拟机信息
         run: |
-          cpu_model=$(cat /proc/cpuinfo | grep 'model name' | head -n1 | awk -F ': ' '{print \$2}')
-          cpu_cores=$(cat /proc/cpuinfo | grep 'cpu cores' | head -n1 | awk -F ': ' '{print \$2}')
+          cpu_model=$(cat /proc/cpuinfo | grep 'model name' | head -n1 | awk -F ': ' '{print $2}')
+          cpu_cores=$(cat /proc/cpuinfo | grep 'cpu cores' | head -n1 | awk -F ': ' '{print $2}')
           cpu_threads=$(nproc)
-          mem_total=$(free -m | grep 'Mem' | awk '{print \$2}')
-          os_version=$(lsb_release -a | grep 'Description' | awk -F ': ' '{print \$2}')
+          mem_total=$(free -m | grep 'Mem' | awk '{print $2}')
+          os_version=$(lsb_release -a | grep 'Description' | awk -F ': ' '{print $2}')
           echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程\n内存: $mem_total MB\n操作系统: $os_version"
       
       - name: 获取编译前/mnt剩余空间
         run: |
-          echo "/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print \$4}')"
+          echo "/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
 
       - name: 创建工作目录
         run: |
@@ -79,7 +79,8 @@ jobs:
         run: |
           today=$(date +v%Y.%m.%d)
           lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
-          sed -i 's/IMG_PREFIX\:=.*/&-$ver-$today/' include/image.mk
+          sed -i 's/IMG_PREFIX:=.*/&-$ver-$today/' include/image.mk
+          grep 'IMG_PREFIX:=.' include/image.mk
           make defconfig
           tag=$lede_version-$today
           echo "tag=$tag" >> $GITHUB_OUTPUT
