@@ -41,13 +41,13 @@ jobs:
       - name: 检出本仓库
         uses: actions/checkout@main
         with:
-          path: $PATH_LEDE_ACTIONS
+          path: ${{ env.PATH_LEDE_ACTIONS}}
       
       - name: 检出LEDE仓库
         uses: actions/checkout@main
         with:
           repository: coolsnowwolf/lede
-          path: $PATH_LEDE
+          path: ${{ env.PATH_LEDE }}
 
       # - name: 安装依赖
       #   run: |
@@ -62,7 +62,6 @@ jobs:
 
       - name: 移动LEDE仓库到工作目录
         run: |
-          ls -l
           mv lede/* $WS_LEDE
 
       - name: 复制my.config到LEDE工作目录
