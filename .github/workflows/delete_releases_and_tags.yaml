@@ -1,9 +1,9 @@
 name: 删除旧版本固件和标签
 
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: 0 4 * * *
+
   workflow_dispatch:
 
 permissions:
@@ -12,8 +12,10 @@ permissions:
 jobs:
   delete_releases_and_tags:
     runs-on: ubuntu-24.04
+
     env:
       GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
     steps:
       - name: 检出代码
         uses: actions/checkout@main
