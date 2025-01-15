@@ -26,11 +26,13 @@ jobs:
           cpu_threads=$(nproc)
           mem_total=$(free -m | grep 'Mem' | awk '{print $2}')
           os_version=$(lsb_release -a | grep 'Description' | awk -F ': ' '{print $2}')
-          echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程\n内存: $mem_total MB\n操作系统: $os_version"
+          echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程
+          echo "内存: $mem_total MB
+          echo "操作系统: $os_version"
       
       - name: 获取编译前/mnt剩余空间
         run: |
-          echo "/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
+          echo "编译前/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
 
       - name: 创建工作目录
         run: |
@@ -98,7 +100,7 @@ jobs:
 
       - name: 获取编译后/mnt剩余空间
         run: |
-          echo "/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print \$4}')"
+          echo "编译后/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
 
       - name: 上传发行版
         uses: softprops/action-gh-release@master
