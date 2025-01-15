@@ -1,9 +1,9 @@
 name: test
 
 on:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -15,38 +15,95 @@ jobs:
 
     env:
       WS_LEDE: /mnt/workspace/lede
-      WS_TEMP: /mnt/workspace/temp
+      PATH_LEDE: lede
+      PATH_LEDE_ACTIONS: lede-actions
 
     steps:
-    
+      - name: 获取虚拟机信息
+        run: |
+          cpu_model=$(cat /proc/cpuinfo | grep 'model name' | head -n1 | awk -F ': ' '{print \$2}')
+          cpu_cores=$(cat /proc/cpuinfo | grep 'cpu cores' | head -n1 | awk -F ': ' '{print \$2}')
+          cpu_threads=$(nproc)
+          mem_total=$(free -m | grep 'Mem' | awk '{print \$2}')
+          os_version=$(lsb_release -a | grep 'Description' | awk -F ': ' '{print \$2}')
+          echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程\n内存: $mem_total MB\n操作系统: $os_version"
+      
+      - name: 获取/mnt剩余空间
+        run: |
+          echo "/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print \$4}')"
+
       - name: 创建工作目录
         run: |
           sudo mkdir -p $WS_LEDE && sudo chown -R $USER:$GROUP $WS_LEDE
           sudo mkdir -p $WS_TEMP && sudo chown -R $USER:$GROUP $WS_TEMP
 
-      - name: 检出代码
+      - name: 检出本仓库
         uses: actions/checkout@main
+        with:
+          path: $PATH_LEDE_ACTIONS
+      
+      - name: 检出LEDE仓库
+        uses: actions/checkout@main
+        with:
+          repository: coolsnowwolf/lede
+          path: $PATH_LEDE
 
-      - name: 复制lede.sh到TEMP目录
+      - name: 安装依赖
+        run : |
+          sudo apt update -y
+          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
+          genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
+          libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
+          libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
+          python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
+          swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
+
+      - name: 移动LEDE仓库到工作目录
         run: |
-          sudo cp lede.sh $WS_TEMP
-          sudo chmod +x $WS_TEMP/lede.sh
+          mv lede/* $WS_LEDE
 
-      - name: 编译LEDE固件
-        run: $WS_TEMP/lede.sh ${{ env.WS_TEMP }}
+      - name: 复制my.config到LEDE工作目录
+        run: |
+          cp $PATH_LEDE_ACTIONS/my.config $WS_LEDE/.config
+
+      - name: 修改Feeds配置并更新
+        run: |
+          sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
         working-directory: ${{ env.WS_LEDE }}
 
-      - name: 创建或清理固件目录
+      - name: 修改编译有关配置
+        id: config
         run: |
-          sudo mkdir -p ./firmware/$(cat ${{ env.WS_TEMP }}/lede.version)
-          sudo rm -rf ./firmware/$(cat ${{ env.WS_TEMP }}/lede.version)/*
+          today=$(date +v%Y.%m.%d)
+          lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
+          sed -i 's/IMG_PREFIX\:=.*/&-$ver-$today/' include/image.mk
+          make defconfig
+          tag=$lede_version-$today
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+        working-directory: ${{ env.WS_LEDE }}
 
-      - name: 上传固件、日志
-        run: |
-          sudo cp ${{ env.WS_TEMP }}/lede.* ./firmware/$(cat ${{ env.WS_TEMP }}/lede.version)/
-          sudo cp -R ${{ env.WS_LEDE }}/bin/targets/x86/64/* ./firmware/$(cat ${{ env.WS_TEMP }}/lede.version)/
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          git add .
-          git commit -m "Add new firmware"
-          git push
+      # - name: 下载编译依赖
+      #   run: |
+      #     make download -j$(nproc) || make download -j1 || make download -j1 V=s
+      #   working-directory: ${{ env.WS_LEDE }}
+
+      # - name: 编译固件
+      #   run: |
+      #     make -j$(nproc) || make -j1 || make -j1 V=s
+      #   working-directory: ${{ env.WS_LEDE }}
+
+      - name: 获取/mnt剩余空间
+      run: |
+        echo "/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print \$4}')"
+
+      - name: 上传发行版
+        uses: softprops/action-gh-release@main
+        with:
+          files: bin/targets/x86/64/*
+          tag_name: ${{ steps.config.outputs.tag }}
+          draft: false
+          prerelease: false
+        working-directory: ${{ env.WS_LEDE }}
