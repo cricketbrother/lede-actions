@@ -26,6 +26,7 @@ def delete_old_releases(repo, days_threshold=7):
     """删除超过指定天数的发行版及其标签"""
     try:
         releases = repo.get_releases()
+        print(releases)
         print(f"共有 {releases.totalCount} 个发行版")
         if releases.totalCount == 0:
             print("没有发行版需要处理")
