@@ -102,8 +102,7 @@ jobs:
       - name: 上传发行版
         uses: softprops/action-gh-release@main
         with:
-          files: bin/targets/x86/64/*
+          files: ${{ env.WS_LEDE }}bin/targets/x86/64/*
           tag_name: ${{ steps.config.outputs.tag }}
           draft: false
           prerelease: false
-        working-directory: ${{ env.WS_LEDE }}
