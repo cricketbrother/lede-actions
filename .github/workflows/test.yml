@@ -102,14 +102,14 @@ jobs:
           echo "编译后/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
 
       - name: 上传发行版
-      uses: softprops/action-gh-release@master
-      with:
-        files: |
-          ${{ env.WS_LEDE }}/bin/targets/x86/64/*
-          ${{ env.WS_LEDE }}/.config
-        tag_name: ${{ steps.config.outputs.tag }}
-        draft: false
-        prerelease: false
-        body: |
-          ${{ steps.poem.outputs.poem }}
+        uses: softprops/action-gh-release@master
+        with:
+          files: |
+            ${{ env.WS_LEDE }}/bin/targets/x86/64/*
+            ${{ env.WS_LEDE }}/.config
+          tag_name: ${{ steps.config.outputs.tag }}
+          draft: false
+          prerelease: false
+          body: |
+            ${{ steps.poem.outputs.poem }}
 
