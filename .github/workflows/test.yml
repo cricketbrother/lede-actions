@@ -101,6 +101,12 @@ jobs:
         run: |
           echo "编译后/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
 
+      - name: 随机获取一句诗词
+        id: poem
+        run: |
+          poem=$(curl https://api.vvhan.com/api/ian/shici)
+          echo "poem=$poem" >> $GITHUB_OUTPUT
+
       - name: 上传发行版
         uses: softprops/action-gh-release@master
         with:
