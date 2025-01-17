@@ -31,8 +31,9 @@ jobs:
           echo "内存: $mem_total MB"
           echo "操作系统: $os_version"
           echo "时间: $(date "+%Y-%m-%d %H:%M:%S")"
-          echo "用户/组: $(id -un) / $(id -gn)"
-          echo "IP: $(hostname -I)"
+          echo "用户/组: $(id -un)/$(id -gn)"
+          echo "主机名: $(hostname)"
+          echo "IP地址: $(hostname -I)"
       
       - name: 获取编译前/mnt剩余空间
         run: |
