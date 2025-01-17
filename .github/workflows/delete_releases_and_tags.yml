@@ -15,8 +15,24 @@ jobs:
 
     env:
       GITHUB_TOKEN: ${{ secrets.TOKEN }}
+      TZ: Asia/Shanghai
 
     steps:
+      - name: 获取虚拟机信息
+        run: |
+          cpu_model=$(cat /proc/cpuinfo | grep 'model name' | head -n1 | awk -F ': ' '{print $2}')
+          cpu_cores=$(cat /proc/cpuinfo | grep 'cpu cores' | head -n1 | awk -F ': ' '{print $2}')
+          cpu_threads=$(nproc)
+          mem_total=$(free -m | grep 'Mem' | awk '{print $2}')
+          os_version=$(lsb_release -a | grep 'Description' | awk -F ':\t' '{print $2}')
+          echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程"
+          echo "内存: $mem_total MB"
+          echo "操作系统: $os_version"
+          echo "时间: $(date "+%Y-%m-%d %H:%M:%S")"
+          echo "用户/组: $(id -un)/$(id -gn)"
+          echo "主机名: $(hostname)"
+          echo "IP地址: $(hostname -I)"
+          
       - name: 检出代码
         uses: actions/checkout@main
       
