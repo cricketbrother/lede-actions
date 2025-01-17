@@ -112,7 +112,7 @@ jobs:
         with:
           files: |
             ${{ env.WS_LEDE }}/bin/targets/x86/64/*
-            ${{ env.WS_LEDE }}/.config
+            ${{ env.WS_LEDE }}/${{ steps.config.outputs.tag }}.config
           tag_name: ${{ steps.config.outputs.tag }}
           draft: false
           prerelease: false
