@@ -84,6 +84,7 @@ jobs:
           make defconfig
           tag=$lede_version-$today
           echo "tag=$tag" >> $GITHUB_OUTPUT
+          cp .config $tag.config
         working-directory: ${{ env.WS_LEDE }}
 
       - name: 下载编译依赖
