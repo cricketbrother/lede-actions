@@ -23,6 +23,8 @@ def get_repo(github_instance, repo_name):
 
 
 def delete_old_releases(repo, days_threshold=7):
+    print("datetime.now(timezone.utc)", datetime.now(timezone.utc))
+    print("datetime.now(timezone.utc) - timedelta(days=days_threshold)", datetime.now(timezone.utc) - timedelta(days=days_threshold))
     """删除超过指定天数的发行版及其标签"""
     try:
         releases = repo.get_releases()
@@ -31,8 +33,6 @@ def delete_old_releases(repo, days_threshold=7):
             return
 
         for release in releases:
-            print("datetime.now(timezone.utc)", datetime.now(timezone.utc))
-            print("datetime.now(timezone.utc) - timedelta(days=days_threshold)", datetime.now(timezone.utc) - timedelta(days=days_threshold))
             if release.created_at < (
                 datetime.now(timezone.utc) - timedelta(days=days_threshold)
             ):
