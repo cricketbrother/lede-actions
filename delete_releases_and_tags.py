@@ -34,6 +34,7 @@ def delete_old_releases(repo, days_threshold=7):
 
         for release in releases:
             if release.created_at < (
+                print("release.created_at", release.created_at)
                 datetime.now(timezone.utc) - timedelta(days=days_threshold)
             ):
                 try:
