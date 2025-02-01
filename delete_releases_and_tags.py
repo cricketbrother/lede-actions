@@ -31,18 +31,18 @@ def delete_old_releases(repo, days_threshold=7):
             return
 
         for release in releases:
-            if release.created_at < (
+            if release.published_at < (
                 datetime.now(timezone.utc) - timedelta(days=days_threshold)
             ):
                 try:
                     release.delete_release()
                     repo.get_git_ref(f"tags/{release.tag_name}").delete()
-                    print(f"发行版 {release.id} 已经被删除(标签: {release.tag_name} 创建时间: {release.created_at})")
+                    print(f"发行版 {release.id} 已经被删除(标签: {release.tag_name} 发布时间: {release.published_at})")
                 except GithubException as e:
                     print(f"删除发行版 {release.id} 失败: {e}")
             else:
                 print(
-                    f"发行版 {release.id} 未到删除时间, 跳过(标签: {release.tag_name} 创建时间: {release.created_at})"
+                    f"发行版 {release.id} 未到删除时间, 跳过(标签: {release.tag_name} 发布时间: {release.published_at})"
                 )
     except GithubException as e:
         print(f"获取发行版失败: {e}")
