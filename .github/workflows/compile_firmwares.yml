@@ -109,7 +109,7 @@ jobs:
       - name: 随机获取一句诗词
         id: poem
         run: |
-          poem=$(curl https://api.vvhan.com/api/ian/shici)
+          poem=$(curl https://api.mir6.com/api/yulu?txt=12&type=txt)
           echo "poem=$poem" >> $GITHUB_OUTPUT
 
       - name: 上传发行版
