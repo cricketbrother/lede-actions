@@ -46,11 +46,11 @@ jobs:
         run: |
           sudo apt update
           sudo apt install jq
-          response = $(curl https://api.codelife.cc/todayShici?lang=cn)
-          quotes = $(echo $response | jq '.data.quotes')
-          author = $(echo $response | jq '.data.author')
-          dynasty = $(echo $response | jq '.data.dynasty')
-          title = $(echo $response | jq '.data.title')
+          response=$(curl --user-agent "Mozilla/5.0" https://api.codelife.cc/todayShici?lang=cn)
+          quotes=$(echo $response | jq -r '.data.quotes')
+          author=$(echo $response | jq -r '.data.author')
+          dynasty=$(echo $response | jq -r '.data.dynasty')
+          title=$(echo $response | jq -r '.data.title')
           poem=$quotes"    "————$dynasty·$author《$title》
           echo "poem=$poem" >> $GITHUB_OUTPUT
           echo $poem > 1.txt
