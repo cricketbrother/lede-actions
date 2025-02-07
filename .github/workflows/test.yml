@@ -51,7 +51,7 @@ jobs:
           author=$(echo $response | jq -r '.data.author')
           dynasty=$(echo $response | jq -r '.data.dynasty')
           title=$(echo $response | jq -r '.data.title')
-          poem=$quotes"    "————$dynasty·$author《$title》
+          poem=$quotes"    "——" "$dynasty·$author《$title》
           echo "poem=$poem" >> $GITHUB_OUTPUT
           echo $poem > 1.txt
 
@@ -60,7 +60,7 @@ jobs:
         with:
           files: |
             1.txt
-          tag_name: v1.2
+          tag_name: v1.3
           draft: false
           prerelease: false
           body: |
