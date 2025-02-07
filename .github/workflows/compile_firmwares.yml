@@ -109,7 +109,14 @@ jobs:
       - name: 随机获取一句诗词
         id: poem
         run: |
-          poem=$(curl https://api.mir6.com/api/yulu?txt=12&type=txt)
+          sudo apt update
+          sudo apt install jq
+          response=$(curl --user-agent "Mozilla/5.0" https://api.codelife.cc/todayShici?lang=cn)
+          quotes=$(echo $response | jq -r '.data.quotes')
+          author=$(echo $response | jq -r '.data.author')
+          dynasty=$(echo $response | jq -r '.data.dynasty')
+          title=$(echo $response | jq -r '.data.title')
+          poem=$quotes"    "——" "$dynasty" "·" "$author《$title》
           echo "poem=$poem" >> $GITHUB_OUTPUT
 
       - name: 上传发行版
