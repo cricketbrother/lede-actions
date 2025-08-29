@@ -41,6 +41,25 @@ jobs:
         with:
           path: ${{ env.PATH_LEDE_ACTIONS}}
 
+      - name: 修改编译有关配置
+        id: config
+        run: |
+          today=$(date +v%Y.%m.%d)
+          lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
+          # sed -i "s/IMG_PREFIX:=.*/&-$lede_version-$today/" include/image.mk
+          echo $(VERSION_DIST_SANITIZED)
+          echo $(IMG_PREFIX_VERNUM)
+          echo $(BOARD)
+          echo $(SUBTARGET)
+          echo $lede_version
+          sed -i "s#IMG_PREFIX:=.*#IMG_PREFIX:=\$(VERSION_DIST_SANITIZED)-\$(IMG_PREFIX_VERNUM)\$(BOARD)\$(if \$(SUBTARGET),-\$(SUBTARGET))-$lede_version-$today#" include/image.mk
+          grep 'IMG_PREFIX:=.' include/image.mk
+          make defconfig
+          tag=$lede_version-$today
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+          cp .config $tag.config
+        working-directory: ${{ env.WS_LEDE }}
+
       - name: 随机获取一句诗词
         id: poem
         run: |
