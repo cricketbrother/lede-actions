@@ -68,7 +68,7 @@ jobs:
           sed -i 's#IMG_PREFIX:=.*#IMG_PREFIX:=\$(VERSION_DIST_SANITIZED)-\$(IMG_PREFIX_VERNUM)\$(BOARD)\$(if \$(SUBTARGET),-\$(SUBTARGET))-$lede_version-$today#' include/image.mk
           grep 'IMG_PREFIX:=.' include/image.mk
           make defconfig
-          tag=$lede_version-$today
+          tag=$lede_version_$today
           safe_tag=$(echo "$tag" | sed 's/\./_/g')
           echo "tag=${safe_tag}" >> $GITHUB_OUTPUT
           cp .config ${safe_tag}.config
