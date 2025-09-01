@@ -69,8 +69,8 @@ jobs:
           grep 'IMG_PREFIX:=.' include/image.mk
           make defconfig
           tag=$lede_version-$today
-          echo "tag=$tag" >> $GITHUB_OUTPUT
-          cp .config "$tag".config
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+          cp .config ${tag}.config
         working-directory: ${{ env.WS_LEDE }}
 
       - name: 获取编译后/mnt剩余空间
