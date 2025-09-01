@@ -68,11 +68,9 @@ jobs:
           sed -i 's#IMG_PREFIX:=.*#IMG_PREFIX:=\$(VERSION_DIST_SANITIZED)-\$(IMG_PREFIX_VERNUM)\$(BOARD)\$(if \$(SUBTARGET),-\$(SUBTARGET))-$lede_version-$today#' include/image.mk
           grep 'IMG_PREFIX:=.' include/image.mk
           make defconfig
-          tag=$lede_version-$today
-          tag=$(echo "${tag}" | sed 's/\./_/g')
-          safe_tag=$(echo "${tag}" | sed 's/-/_/g')
-          echo "tag=${safe_tag}" >> $GITHUB_OUTPUT
-          cp .config ${safe_tag}.config
+          tag=$(echo "${today}" | sed 's/\.//g')
+          echo "tag=${tag}" >> $GITHUB_OUTPUT
+          cp .config ${tag}.config
         working-directory: ${{ env.WS_LEDE }}
 
       - name: 获取编译后/mnt剩余空间
