@@ -1,6 +1,8 @@
-name: test
+name: 编译固件
 
 on:
+  schedule:
+    - cron: 0 20 * * *
   workflow_dispatch:
 
 permissions:
@@ -31,6 +33,10 @@ jobs:
           echo "用户/组: $(id -un)/$(id -gn)"
           echo "主机名: $(hostname)"
           echo "IP地址: $(hostname -I)"
+      
+      - name: 获取编译前/mnt剩余空间
+        run: |
+          echo "编译前/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
 
       - name: 创建工作目录
         run: |
@@ -40,37 +46,35 @@ jobs:
         uses: actions/checkout@main
         with:
           path: ${{ env.PATH_LEDE_ACTIONS}}
+      
+      - name: 检出LEDE仓库
+        uses: actions/checkout@main
+        with:
+          repository: coolsnowwolf/lede
+          path: ${{ env.PATH_LEDE }}
+
+      - name: 移动LEDE仓库到工作目录
+        run: |
+          mv lede/* $WS_LEDE
+
+      - name: 复制my.config到LEDE工作目录
+        run: |
+          cp $PATH_LEDE_ACTIONS/my.config $WS_LEDE/.config
 
       - name: 修改编译有关配置
         id: config
         run: |
           today=$(date +v%Y.%m.%d)
-          lede_version="R25.8.8"
-          touch 1.txt
-          cp 1.txt "$lede_version-$today.txt"
-          ll -h
+          lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
+          # sed -i 's#IMG_PREFIX:=.*#&-$lede_version-$today#' include/image.mk
+          sed -i 's#IMG_PREFIX:=.*#IMG_PREFIX:=\$(VERSION_DIST_SANITIZED)-\$(IMG_PREFIX_VERNUM)\$(BOARD)\$(if \$(SUBTARGET),-\$(SUBTARGET))-$lede_version-$today#' include/image.mk
+          grep 'IMG_PREFIX:=.' include/image.mk
+          make defconfig
+          tag=$lede_version-$today
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+          cp .config "$tag.config"
+        working-directory: ${{ env.WS_LEDE }}
 
-      - name: 随机获取一句诗词
-        id: poem
+      - name: 获取编译后/mnt剩余空间
         run: |
-          sudo apt update
-          sudo apt install jq
-          response=$(curl --user-agent "Mozilla/5.0" https://api.codelife.cc/todayShici?lang=cn)
-          quotes=$(echo $response | jq -r '.data.quotes')
-          author=$(echo $response | jq -r '.data.author')
-          dynasty=$(echo $response | jq -r '.data.dynasty')
-          title=$(echo $response | jq -r '.data.title')
-          poem=$quotes"    "——" "$dynasty·$author《$title》
-          echo "poem=$poem" >> $GITHUB_OUTPUT
-          echo $poem > 1.txt
-
-      - name: 上传发行版
-        uses: softprops/action-gh-release@master
-        with:
-          files: |
-            1.txt
-          tag_name: v1.3
-          draft: false
-          prerelease: false
-          body: |
-            ${{ steps.poem.outputs.poem }}
+          echo "编译后/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
