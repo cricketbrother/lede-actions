@@ -1,8 +1,6 @@
-name: 编译固件
+name: test
 
 on:
-  schedule:
-    - cron: 0 20 * * *
   workflow_dispatch:
 
 permissions:
