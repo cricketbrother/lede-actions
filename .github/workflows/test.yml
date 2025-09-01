@@ -47,7 +47,8 @@ jobs:
           today=$(date +v%Y.%m.%d)
           lede_version="R25.8.8"
           touch 1.txt
-          cp 1.txt "$lede_version-$today".txt
+          cp 1.txt "$lede_version-$today.txt"
+          ll -h
 
       - name: 随机获取一句诗词
         id: poem
