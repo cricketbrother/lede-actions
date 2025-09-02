@@ -69,7 +69,7 @@ jobs:
           # sed -i 's#IMG_PREFIX:=.*#&-$lede_version-$today#' include/image.mk
           # sed -i "s#IMG_PREFIX:=.*#IMG_PREFIX:=\$(VERSION_DIST_SANITIZED)-\$(IMG_PREFIX_VERNUM)\$(BOARD)\$(if \$(SUBTARGET),-\$(SUBTARGET))-${lede_version}-${today}#" include/image.mk
           grep 'IMG_PREFIX:=.*' include/image.mk
-          sed -i "s#^IMG_PREFIX:=.*#&-${lede_version}-${today}#" include/image.mk
+          sed -i "s/^\(IMG_PREFIX:=.*\)/\1-${lede_version}-${today}/" include/image.mk
           grep 'IMG_PREFIX:=.*' include/image.mk
           make defconfig
           tag=$(echo "${today}" | sed 's/\.//g')
