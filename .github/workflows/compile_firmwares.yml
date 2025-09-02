@@ -40,7 +40,7 @@ jobs:
 
       - name: 创建工作目录
         run: |
-          sudo mkdir -p ${WS_LEDE} && sudo chown -R $(id -un):$(id -gn) ${WS_LEDE}
+          sudo mkdir -p $WS_LEDE && sudo chown -R $(id -un):$(id -gn) $WS_LEDE
 
       - name: 检出本仓库
         uses: actions/checkout@main
@@ -66,11 +66,11 @@ jobs:
 
       - name: 移动LEDE仓库到工作目录
         run: |
-          mv lede/* ${WS_LEDE}
+          mv lede/* $WS_LEDE
 
       - name: 复制my.config到LEDE工作目录
         run: |
-          cp ${PATH_LEDE_ACTIONS}/my.config ${WS_LEDE}/.config
+          cp $PATH_LEDE_ACTIONS/my.config $WS_LEDE/.config
 
       - name: 修改Feeds配置并更新
         run: |
@@ -82,15 +82,15 @@ jobs:
       - name: 修改编译有关配置
         id: config
         run: |
-          today=$(date +v%Y.%m.%d.%H)
-          lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
-          # sed -i 's#IMG_PREFIX:=.*#&-$lede_version-$today#' include/image.mk
-          sed -i "s#IMG_PREFIX:=.*#IMG_PREFIX:=\$(VERSION_DIST_SANITIZED)-\$(IMG_PREFIX_VERNUM)\$(BOARD)\$(if \$(SUBTARGET),-\$(SUBTARGET))-${lede_version}-${today}#" include/image.mk
+          today=$(date +v%Y.%m.%d)
+          lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -m 1 -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
+          # sed -i "s/IMG_PREFIX:=.*/&-$lede_version-$today/" include/image.mk
+          sed -i "s/IMG_PREFIX:=.*/IMG_PREFIX:=\$(VERSION_DIST_SANITIZED)-\$(IMG_PREFIX_VERNUM)\$(BOARD)\$(if \$(SUBTARGET),-\$(SUBTARGET))-$lede_version-$today/" include/image.mk
           grep 'IMG_PREFIX:=.' include/image.mk
           make defconfig
-          tag=$(echo "${today}" | sed 's/\.//g')
-          echo "tag=${tag}" >> $GITHUB_OUTPUT
-          cp .config ${tag}.config
+          tag=$lede_version-$today
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+          cp .config $tag.config
         working-directory: ${{ env.WS_LEDE }}
 
       - name: 下载编译依赖
@@ -131,4 +131,3 @@ jobs:
           prerelease: false
           body: |
             ${{ steps.poem.outputs.poem }}
-
