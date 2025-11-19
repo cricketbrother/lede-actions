@@ -42,40 +42,15 @@ jobs:
 
       - name: 检出本仓库
         uses: actions/checkout@main
-        with:
-          path: ${{ env.PATH_LEDE_ACTIONS}}
       
       - name: 检出LEDE仓库
         uses: actions/checkout@main
         with:
           repository: coolsnowwolf/lede
-          path: ${{ env.PATH_LEDE }}
 
-      - name: 移动LEDE仓库到工作目录
+      - name: 列表
         run: |
-          mv lede/* $WS_LEDE
-
-      - name: 复制my.config到LEDE工作目录
-        run: |
-          cp $PATH_LEDE_ACTIONS/my.config $WS_LEDE/.config
-
-      - name: 修改编译有关配置
-        id: config
-        run: |
-          today=$(date +v%Y.%m.%d)
-          echo ${today}
-          lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -m 1 -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
-          echo ${lede_version}
-          # sed -i 's#IMG_PREFIX:=.*#&-$lede_version-$today#' include/image.mk
-          # sed -i "s#IMG_PREFIX:=.*#IMG_PREFIX:=\$(VERSION_DIST_SANITIZED)-\$(IMG_PREFIX_VERNUM)\$(BOARD)\$(if \$(SUBTARGET),-\$(SUBTARGET))-${lede_version}-${today}#" include/image.mk
-          grep 'IMG_PREFIX:=.*' include/image.mk
-          sed -i "s/^\(IMG_PREFIX:=.*\)/\1-${lede_version}-${today}/" include/image.mk
-          grep 'IMG_PREFIX:=.*' include/image.mk
-          make defconfig
-          tag=$(echo "${today}" | sed 's/\.//g')
-          echo "tag=${tag}" >> $GITHUB_OUTPUT
-          cp .config ${tag}.config
-        working-directory: ${{ env.WS_LEDE }}
+          ls -la
 
       - name: 获取编译后/mnt剩余空间
         run: |
