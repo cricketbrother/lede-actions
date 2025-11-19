@@ -9,6 +9,9 @@ permissions:
 jobs:
   compile_firmwares:
     runs-on: ubuntu-24.04
+
+    env:
+      WD: /mnt/lede
     
     steps:
       - name: 获取虚拟机信息
@@ -26,26 +29,27 @@ jobs:
           echo "主机名: $(hostname)"
           echo "IP地址: $(hostname -I)"
       
-      - name: 获取编译前剩余空间
+      - name: 获取编译前/mnt剩余空间
         run: |
-          echo "编译前剩余空间:"
-          echo "$(df -h)"
+          echo "编译前/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
       
       - name: 检出LEDE仓库
         uses: actions/checkout@main
         with:
           repository: coolsnowwolf/lede
+          path: /mnt/lede
 
       - name: 下载自定义配置
         run: |
           curl https://raw.githubusercontent.com/cricketbrother/lede-actions/refs/heads/main/my.config -o .config
-
+        working-directory: ${{ env.WD }}
+        
       - name: 列表
         run: |
           pwd
           ls -la
+        working-directory: ${{ env.WD }}
 
-      - name: 获取编译后剩余空间
+      - name: 获取编译后/mnt剩余空间
         run: |
-          echo "编译前剩余空间:"
-          echo "$(df -h)"
+          echo "编译前/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
