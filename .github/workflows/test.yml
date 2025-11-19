@@ -41,7 +41,7 @@ jobs:
       - name: 创建工作目录
         run: |
           sudo mkdir -p $WD
-          sudo chown -R $(id -un):$(id -gn)
+          sudo chown -R $(id -un):$(id -gn) $WD
 
       - name: 移动LEDE仓库到工作目录
         run: |
