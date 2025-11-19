@@ -42,6 +42,7 @@ jobs:
 
       - name: 列表
         run: |
+          pwd
           ls -la
 
       - name: 获取编译后剩余空间
