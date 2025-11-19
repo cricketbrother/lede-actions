@@ -37,7 +37,14 @@ jobs:
         uses: actions/checkout@main
         with:
           repository: coolsnowwolf/lede
-          path: /mnt/lede
+
+      - name: 创建工作目录
+        run: |
+          sudo mkdir -p $WD
+
+      - name: 移动LEDE仓库到工作目录
+        run: |
+          mv ./* $WD
 
       - name: 下载自定义配置
         run: |
