@@ -95,7 +95,7 @@ jobs:
                 continue
             fi
             newfile=${file%generic*}generic-${{ steps.tag.outputs.tag }}${file##*generic}
-            cp "$file" "$newfile"
+            mv "$file" "$newfile"
           done
         working-directory: ${{ env.WD }}
 
@@ -126,5 +126,3 @@ jobs:
           prerelease: false
           body: |
             ${{ steps.poem.outputs.poem }}
-
-          
