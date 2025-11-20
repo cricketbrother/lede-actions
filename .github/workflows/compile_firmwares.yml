@@ -13,11 +13,8 @@ jobs:
     runs-on: ubuntu-24.04
 
     env:
-      WS_LEDE: /mnt/workspace/lede
-      PATH_LEDE: lede
-      PATH_LEDE_ACTIONS: lede-actions
-      TZ: Asia/Shanghai
-
+      WD: /mnt/lede
+    
     steps:
       - name: 获取虚拟机信息
         run: |
@@ -38,74 +35,75 @@ jobs:
         run: |
           echo "编译前/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
 
-      - name: 创建工作目录
+      - name: 安装依赖
         run: |
-          sudo mkdir -p $WS_LEDE && sudo chown -R $(id -un):$(id -gn) $WS_LEDE
-
-      - name: 检出本仓库
-        uses: actions/checkout@main
-        with:
-          path: ${{ env.PATH_LEDE_ACTIONS}}
+          sudo apt update -y
+          sudo apt full-upgrade -y
+          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
+          genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
+          libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
+          libreadline-dev libssl-dev libtool llvm lrzsz libnsl-dev ninja-build p7zip p7zip-full patch pkgconf \
+          python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
+          swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
       
       - name: 检出LEDE仓库
         uses: actions/checkout@main
         with:
           repository: coolsnowwolf/lede
-          path: ${{ env.PATH_LEDE }}
 
-      - name: 安装依赖
+      - name: 创建工作目录
         run: |
-          sudo apt update -y
-          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-          bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
-          genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
-          libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
-          libreadline-dev libssl-dev libtool llvm lrzsz msmtp ninja-build p7zip p7zip-full patch pkgconf \
-          python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
-          swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
+          sudo mkdir -p $WD
+          sudo chown -R $(id -un):$(id -gn) $WD
 
       - name: 移动LEDE仓库到工作目录
         run: |
-          mv lede/* $WS_LEDE
+          mv ./* $WD
 
-      - name: 复制my.config到LEDE工作目录
-        run: |
-          cp $PATH_LEDE_ACTIONS/my.config $WS_LEDE/.config
-
-      - name: 修改Feeds配置并更新
+      - name: 修改编译有关配置
         run: |
           sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-        working-directory: ${{ env.WS_LEDE }}
-
-      - name: 修改编译有关配置
-        id: config
-        run: |
-          today=$(date +v%Y.%m.%d)
-          lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -m 1 -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
-          # sed -i "s/IMG_PREFIX:=.*/&-$lede_version-$today/" include/image.mk
-          sed -i "s/IMG_PREFIX:=.*/IMG_PREFIX:=\$(VERSION_DIST_SANITIZED)-\$(IMG_PREFIX_VERNUM)\$(BOARD)\$(if \$(SUBTARGET),-\$(SUBTARGET))-$lede_version-$today/" include/image.mk
-          grep 'IMG_PREFIX:=.' include/image.mk
+          curl https://raw.githubusercontent.com/cricketbrother/lede-actions/refs/heads/main/my.config -o .config
           make defconfig
-          tag=$lede_version-$today
-          echo "tag=$tag" >> $GITHUB_OUTPUT
-          cp .config $tag.config
-        working-directory: ${{ env.WS_LEDE }}
-
+        working-directory: ${{ env.WD }}
+        
       - name: 下载编译依赖
         run: |
           make download -j$(nproc) || make download -j1 || make download -j1 V=s
-        working-directory: ${{ env.WS_LEDE }}
+        working-directory: ${{ env.WD }}
 
       - name: 编译固件
         run: |
           make -j$(nproc) || make -j1 || make -j1 V=s
-        working-directory: ${{ env.WS_LEDE }}
+        working-directory: ${{ env.WD }}
+
+      - name: 生成TAG
+        id: tag
+        run: |
+          today=$(date +v%Y.%m.%d)
+          lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -m 1 -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
+          tag=$lede_version-$today-test
+          echo "tag=$tag" >> $GITHUB_OUTPUT
+        working-directory: ${{ env.WD }}
+        
+      - name: 重命名固件
+        run: |
+          cp .config ./bin/targets/x86/64/${{ steps.tag.outputs.tag }}.config
+          for file in $(ls ./bin/targets/x86/64/lede*); do
+            if [[ -d "$file" ]]; then
+                continue
+            fi
+            newfile=${file%generic*}generic-${{ steps.tag.outputs.tag }}${file##*generic}
+            mv "$file" "$newfile"
+          done
+        working-directory: ${{ env.WD }}
 
       - name: 获取编译后/mnt剩余空间
         run: |
-          echo "编译后/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
+          echo "编译前/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
 
       - name: 随机获取一句诗词
         id: poem
@@ -119,15 +117,15 @@ jobs:
           title=$(echo $response | jq -r '.data.title')
           poem=$quotes"    "——" "$dynasty" "·" "$author《$title》
           echo "poem=$poem" >> $GITHUB_OUTPUT
-
+          
       - name: 上传发行版
         uses: softprops/action-gh-release@master
         with:
           files: |
-            ${{ env.WS_LEDE }}/bin/targets/x86/64/*
-            ${{ env.WS_LEDE }}/${{ steps.config.outputs.tag }}.config
-          tag_name: ${{ steps.config.outputs.tag }}
+            ${{ env.WD }}/bin/targets/x86/64/*
+          tag_name: ${{ steps.tag.outputs.tag }}
           draft: false
           prerelease: false
           body: |
             ${{ steps.poem.outputs.poem }}
+
