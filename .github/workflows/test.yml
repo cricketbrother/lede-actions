@@ -76,7 +76,7 @@ jobs:
       - name: 编译固件
         run: |
           make -j$(nproc) || make -j1 || make -j1 V=s
-        working-directory: ${{ env.WD }}+
+        working-directory: ${{ env.WD }}
 
       - name: 生成TAG
         id: tag
