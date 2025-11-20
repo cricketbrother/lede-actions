@@ -83,7 +83,7 @@ jobs:
         run: |
           today=$(date +v%Y.%m.%d)
           lede_version=$(cat package/lean/default-settings/files/zzz-default-settings | egrep -m 1 -o 'R[0-9]{2}\.[0-9]{1,2}\.[0-9]{1,2}')
-          tag=$lede_version-$today
+          tag=$lede_version-$today-test
           echo "tag=$tag" >> $GITHUB_OUTPUT
         
       - name: 重命名固件
