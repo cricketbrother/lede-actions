@@ -51,6 +51,7 @@ jobs:
         uses: actions/checkout@main
         with:
           repository: coolsnowwolf/lede
+          fetch-depth: 0
 
       - name: 创建工作目录
         run: |
