@@ -59,9 +59,9 @@ jobs:
           sudo mkdir -p $WD
           sudo chown -R $(id -un):$(id -gn) $WD
 
-      - name: 移动LEDE仓库到工作目录
+      - name: 复制LEDE仓库到工作目录
         run: |
-          mv ./* $WD
+          cp -r . $WD
 
       - name: 修改编译有关配置
         run: |
