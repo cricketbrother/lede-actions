@@ -55,6 +55,7 @@ jobs:
         uses: actions/checkout@main
         with:
           repository: coolsnowwolf/lede
+          path: $WD
 
       - name: Check git commit hash
         run: |
@@ -62,9 +63,9 @@ jobs:
           git rev-parse --short HEAD || echo "GIT FAILED 1"
           git rev-parse --git-dir >/dev/null 2>&1 || echo "GIT FAILED 2"
 
-      - name: 移动LEDE仓库到工作目录
-        run: |
-          mv ./* $WD
+      # - name: 移动LEDE仓库到工作目录
+      #   run: |
+      #     mv ./* $WD
 
       - name: Check git commit hash
         run: |
