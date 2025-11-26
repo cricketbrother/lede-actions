@@ -63,8 +63,8 @@ jobs:
         run: |
           mv ./* $WD
 
-- name: Check git commit hash
-  run: git rev-parse --short HEAD || echo "GIT FAILED"
+      - name: Check git commit hash
+        run: git rev-parse --short HEAD || echo "GIT FAILED"
 
       # - name: 修改编译有关配置
       #   run: |
