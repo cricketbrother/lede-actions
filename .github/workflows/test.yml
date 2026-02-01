@@ -69,7 +69,7 @@ jobs:
           sed -i '2i src-git passwall_luci https://github.com/Openwrt-Passwall/openwrt-passwall.git;main' feeds.conf.default
           ./scripts/feeds update -a
           rm -rf feeds/packages/lang/golang
-          git clone https://github.com/kenzok8/golang -b 1.25 feeds/packages/lang/golang
+          git clone https://github.com/cricketbrother/golang -b 1.25 feeds/packages/lang/golang
           ./scripts/feeds install -a
           curl https://raw.githubusercontent.com/cricketbrother/lede-actions/refs/heads/main/my-test.config -o .config
           make defconfig
