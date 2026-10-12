@@ -85,7 +85,7 @@ jobs:
       - name: 生成TAG
         id: tag
         run: |
-          tag=v$(date +v%Y.%m.%d)
+          tag=$(date +v%Y.%m.%d)
           echo "tag=$tag" >> $GITHUB_OUTPUT
         working-directory: ${{ env.WD }}
         
