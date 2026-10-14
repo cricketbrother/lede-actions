@@ -37,7 +37,7 @@ jobs:
       
       - name: 获取编译前磁盘剩余空间
         run: |
-          echo "编译前/mnt剩余空间: $(df -h | grep '/dev/root' | awk '{print $4}')"
+          echo "编译前磁盘剩余空间: $(df -h | grep '/dev/root' | awk '{print $4}')"
 
       - name: 安装依赖
         run: |
@@ -133,7 +133,7 @@ jobs:
 
       - name: 获取编译后磁盘剩余空间
         run: |
-          echo "编译前/mnt剩余空间: $(df -h | grep '/dev/root' | awk '{print $4}')"
+          echo "编译后磁盘剩余空间: $(df -h | grep '/dev/root' | awk '{print $4}')"
 
       - name: 随机获取一句诗词
         id: poem
