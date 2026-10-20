@@ -1,131 +1,315 @@
-name: 编译固件
+name: Build LEDE Firmware
 
 on:
   schedule:
-    - cron: 0 20 * * *
+    # 北京时间 04:00 = UTC 20:00（前一天）
+    - cron: '0 20 * * *'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
+env:
+  LEDE_REPO: https://github.com/coolsnowwolf/lede.git
+  LEDE_DIR: lede
+  CONFIG_FILE: my.config
+
+  # ccache 运行时参数。CCACHE_DIR / CCACHE_BASEDIR 由 LEDE rules.mk 强制设置，这里不要覆盖
+  CCACHE_MAXSIZE: 3G
+  CCACHE_COMPRESS: "true"
+  CCACHE_COMPRESSLEVEL: "6"
+  CCACHE_NOHASHDIR: "true"
+
 jobs:
-  compile_firmwares:
-    runs-on: ubuntu-24.04
+  build:
+    name: Build
+    runs-on: ubuntu-26.04
+    timeout-minutes: 360
 
-    env:
-      WD: /mnt/lede
-      TZ: Asia/Shanghai
-    
     steps:
-      - name: 获取虚拟机信息
-        run: |
-          cpu_model=$(cat /proc/cpuinfo | grep 'model name' | head -n1 | awk -F ': ' '{print $2}')
-          cpu_cores=$(cat /proc/cpuinfo | grep 'cpu cores' | head -n1 | awk -F ': ' '{print $2}')
-          cpu_threads=$(nproc)
-          mem_total=$(free -m | grep 'Mem' | awk '{print $2}')
-          os_version=$(lsb_release -a | grep 'Description' | awk -F ':\t' '{print $2}')
-          echo "CPU: $cpu_model $cpu_cores核心$cpu_threads线程"
-          echo "内存: $mem_total MB"
-          echo "操作系统: $os_version"
-          echo "时间: $(date "+%Y-%m-%d %H:%M:%S")"
-          echo "用户/组: $(id -un)/$(id -gn)"
-          echo "主机名: $(hostname)"
-          echo "IP地址: $(hostname -I)"
-      
-      - name: 获取编译前/mnt剩余空间
-        run: |
-          echo "编译前/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
-
-      - name: 安装依赖
-        run: |
-          sudo apt update -y
-          sudo apt full-upgrade -y
-          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-          bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
-          genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
-          libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
-          libreadline-dev libssl-dev libtool llvm lrzsz libnsl-dev ninja-build p7zip p7zip-full patch pkgconf \
-          python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
-          swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
-      
-      - name: 检出LEDE仓库
+      # ============================================================
+      # Step 1: 准备
+      # ============================================================
+      - name: Checkout repo
         uses: actions/checkout@main
+
+      - name: Validate config
+        run: |
+          if [ ! -f "$CONFIG_FILE" ]; then
+            echo "::error::仓库根目录找不到 $CONFIG_FILE"
+            ls -la
+            exit 1
+          fi
+          echo ">>> 使用配置: $CONFIG_FILE"
+
+      - name: Generate metadata
+        id: meta
+        run: |
+          echo "TAG=v$(TZ='Asia/Shanghai' date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+          echo "BUILD_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S %Z')" >> "$GITHUB_OUTPUT"
+
+      # ============================================================
+      # Step 2: 安装编译依赖（Ubuntu 26.04 适配版）
+      # ============================================================
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            jq ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+            bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
+            genisoimage git gperf haveged help2man libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
+            libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
+            libreadline-dev libssl-dev libtool llvm lrzsz libnsl-dev ninja-build p7zip-full patch pkgconf \
+            python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
+            swig texinfo node-uglify upx-ucl unzip vim wget xmlto xxd xz-utils zlib1g-dev \
+            time tzdata
+
+      # ============================================================
+      # Step 3: 克隆 LEDE 源码
+      # ============================================================
+      - name: Clone LEDE source
+        run: git clone --depth=1 "$LEDE_REPO" "$LEDE_DIR"
+
+      # ============================================================
+      # Step 4: 恢复 ccache 缓存
+      #         LEDE rules.mk 将 CCACHE_DIR 固定为 $(TOPDIR)/.ccache
+      # ============================================================
+      - name: Restore ccache
+        uses: actions/cache@main
         with:
-          repository: coolsnowwolf/lede
-          fetch-depth: 0
+          path: ${{ env.LEDE_DIR }}/.ccache
+          key: ${{ runner.os }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ github.ref_name }}-
+            ${{ runner.os }}-ccache-
 
-      - name: 创建工作目录
+      # ============================================================
+      # Step 5: 修改编译配置
+      # ============================================================
+      - name: Configure build
+        working-directory: ${{ env.LEDE_DIR }}
         run: |
-          sudo mkdir -p $WD
-          sudo chown -R $(id -un):$(id -gn) $WD
+          set -e
 
-      - name: 复制LEDE仓库到工作目录
-        run: |
-          cp -r . $WD
+          # ccache 初始化
+          LEDE_CCACHE_DIR="$PWD/.ccache"
+          mkdir -p "$LEDE_CCACHE_DIR"
+          CCACHE_DIR="$LEDE_CCACHE_DIR" ccache --max-size="$CCACHE_MAXSIZE"
+          echo ">>> 恢复后的 ccache:"
+          CCACHE_DIR="$LEDE_CCACHE_DIR" ccache -s || true
 
-      - name: 修改编译有关配置
-        run: |
+          # 启用 helloworld
           sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
+
+          # 更新 feeds
           ./scripts/feeds update -a
           ./scripts/feeds install -a
-          curl https://raw.githubusercontent.com/cricketbrother/lede-actions/refs/heads/main/my.config -o .config
-          make defconfig
-        working-directory: ${{ env.WD }}
-        
-      - name: 下载编译依赖
-        run: |
-          make download -j$(nproc) || make download -j1 || make download -j1 V=s
-        working-directory: ${{ env.WD }}
 
-      - name: 编译固件
-        run: |
-          make -j$(nproc) || make -j1 || make -j1 V=s
-        working-directory: ${{ env.WD }}
+          # 使用仓库中的配置
+          cp "${{ github.workspace }}/$CONFIG_FILE" .config
 
-      - name: 生成TAG
-        id: tag
-        run: |
-          tag=$(date +v%Y.%m.%d)
-          echo "tag=$tag" >> $GITHUB_OUTPUT
-        working-directory: ${{ env.WD }}
-        
-      - name: 重命名固件
-        run: |
-          cp .config ./bin/targets/x86/64/${{ steps.tag.outputs.tag }}.config
-          for file in $(ls ./bin/targets/x86/64/lede*); do
-            if [[ -d "$file" ]]; then
-                continue
+          # 启用 DEVEL + CCACHE（CCACHE 依赖 DEVEL）
+          enable_config() {
+            local key="$1"
+            if grep -q "^${key}=" .config; then
+              sed -i "s|^${key}=.*|${key}=y|" .config
+            elif grep -q "^# ${key} is not set" .config; then
+              sed -i "s|^# ${key} is not set|${key}=y|" .config
+            else
+              echo "${key}=y" >> .config
             fi
-            newfile=${file%generic*}generic-${{ steps.tag.outputs.tag }}${file##*generic}
-            mv "$file" "$newfile"
-          done
-        working-directory: ${{ env.WD }}
+          }
+          enable_config CONFIG_DEVEL
+          enable_config CONFIG_CCACHE
 
-      - name: 获取编译后/mnt剩余空间
+          make defconfig
+
+          if grep -q '^CONFIG_CCACHE=y' .config; then
+            echo ">>> CONFIG_CCACHE=y 已生效"
+          else
+            echo "::warning::CONFIG_CCACHE 未启用"
+            grep -E 'CONFIG_(CCACHE|DEVEL)' .config || true
+          fi
+
+      # ============================================================
+      # Step 6: 下载依赖
+      # ============================================================
+      - name: Download packages
+        working-directory: ${{ env.LEDE_DIR }}
         run: |
-          echo "编译前/mnt剩余空间: $(df -h | grep '/mnt' | awk '{print $4}')"
+          make download -j"$(nproc)" || \
+          make download -j1 || \
+          make download -j1 V=s
 
-      - name: 随机获取一句诗词
+      # ============================================================
+      # Step 7: 编译固件
+      # ============================================================
+      - name: Build firmware
+        working-directory: ${{ env.LEDE_DIR }}
+        run: |
+          make -j"$(nproc)" || \
+          make -j1 || \
+          make -j1 V=s
+
+      # ============================================================
+      # Step 8: 重命名固件并同步 version.buildinfo
+      # ============================================================
+      - name: Rename firmware and sync version.buildinfo
+        working-directory: ${{ env.LEDE_DIR }}
+        env:
+          DATE_VER: ${{ steps.meta.outputs.TAG }}
+        run: |
+          set -e
+          echo ">>> 重命名固件，插入版本 $DATE_VER ..."
+
+          find bin/targets -type f \( -name '*.bin' -o -name '*.img' -o -name '*.img.gz' -o -name '*.tar.gz' \) | while read -r f; do
+            dir=$(dirname "$f")
+            base=$(basename "$f")
+
+            # 已包含日期则跳过
+            case "$base" in
+              *-"$DATE_VER"-*|*"$DATE_VER".*) continue ;;
+            esac
+
+            # 分离扩展名
+            ext=""; name="$base"
+            case "$base" in
+              *.img.gz) ext=".img.gz"; name="${base%.img.gz}" ;;
+              *.tar.gz) ext=".tar.gz"; name="${base%.tar.gz}" ;;
+              *.img)    ext=".img";    name="${base%.img}" ;;
+              *.bin)    ext=".bin";    name="${base%.bin}" ;;
+              *) continue ;;
+            esac
+
+            # 在 commit hash 后插入 -vYYYYMMDD
+            newname=$(echo "$name" | sed -E "s/-([0-9a-f]{7,40})-/-\\1-${DATE_VER}-/")
+
+            if [ "$newname" != "$name" ]; then
+              mv "$f" "$dir/${newname}${ext}"
+              echo "  重命名: $base"
+              echo "       -> ${newname}${ext}"
+
+              # 同步 version.buildinfo
+              BUILDINFO="$dir/version.buildinfo"
+              if [ -f "$BUILDINFO" ]; then
+                VER_FULL=$(echo "$newname" | sed -E "s/^lede-(.+)-${DATE_VER}-.*/\1-${DATE_VER}/")
+                if grep -q '^VERSION_NUMBER=' "$BUILDINFO"; then
+                  sed -i "s|^VERSION_NUMBER=.*|VERSION_NUMBER=${VER_FULL}|" "$BUILDINFO"
+                else
+                  echo "VERSION_NUMBER=${VER_FULL}" >> "$BUILDINFO"
+                fi
+                echo "  同步 version.buildinfo: VERSION_NUMBER=${VER_FULL}"
+              fi
+            else
+              echo "  跳过（未匹配 hash 模式）: $base"
+            fi
+          done
+
+      # ============================================================
+      # Step 9: 更新 sha256sums
+      # ============================================================
+      - name: Update sha256sums
+        working-directory: ${{ env.LEDE_DIR }}
+        run: |
+          set -e
+          echo ">>> 更新 sha256sums ..."
+          find bin/targets -type f -name 'sha256sums' | while read -r sums; do
+            dir=$(dirname "$sums")
+            (
+              cd "$dir" && \
+              find . -maxdepth 1 -type f ! -name 'sha256sums' -printf '%f\0' \
+                | sort -z \
+                | xargs -0 -r sha256sum > sha256sums.new && \
+              mv sha256sums.new sha256sums
+            ) || true
+            echo "  更新: $sums"
+          done
+
+      # ============================================================
+      # Step 10: ccache 统计 + 产物预览
+      # ============================================================
+      - name: Show artifacts and ccache stats
+        if: always()
+        run: |
+          echo ">>> 固件产物:"
+          find "$LEDE_DIR/bin/targets" -maxdepth 3 -type f \
+            \( -name '*.bin' -o -name '*.img' -o -name '*.img.gz' -o -name '*.tar.gz' \) \
+            -printf '%p\n' 2>/dev/null || true
+
+          echo ">>> version.buildinfo 内容:"
+          find "$LEDE_DIR/bin/targets" -maxdepth 2 -name 'version.buildinfo' \
+            -exec sh -c 'echo "--- $1"; cat "$1"' _ {} \; 2>/dev/null || true
+
+          LEDE_CCACHE_DIR="${{ github.workspace }}/${{ env.LEDE_DIR }}/.ccache"
+          echo ">>> ccache 统计:"
+          CCACHE_DIR="$LEDE_CCACHE_DIR" ccache -s || true
+          echo ">>> 缓存目录大小:"
+          du -sh "$LEDE_CCACHE_DIR" 2>/dev/null || echo "(不存在)"
+
+      # ============================================================
+      # Step 11: 上传固件到 Release
+      # ============================================================
+      - name: Fetch random poem
         id: poem
         run: |
-          sudo apt update
-          sudo apt install jq
-          response=$(curl --user-agent "Mozilla/5.0" https://api.codelife.cc/todayShici?lang=cn)
-          quotes=$(echo $response | jq -r '.data.quotes')
-          author=$(echo $response | jq -r '.data.author')
-          dynasty=$(echo $response | jq -r '.data.dynasty')
-          title=$(echo $response | jq -r '.data.title')
-          poem=$quotes"    "——" "$dynasty" "·" "$author《$title》
-          echo "poem=$poem" >> $GITHUB_OUTPUT
+          response=$(curl -fsSL --max-time 10 \
+            --user-agent "Mozilla/5.0" \
+            "https://api.codelife.cc/todayShici?lang=cn" || true)
+
+          quotes=$(echo "$response"  | jq -r '.data.quotes  // empty' 2>/dev/null || true)
+          author=$(echo "$response"  | jq -r '.data.author  // empty' 2>/dev/null || true)
+          dynasty=$(echo "$response" | jq -r '.data.dynasty // empty' 2>/dev/null || true)
+          title=$(echo "$response"   | jq -r '.data.title   // empty' 2>/dev/null || true)
+
+          if [ -n "$quotes" ] && [ -n "$author" ]; then
+            poem="${quotes}    —— ${dynasty} · ${author}《${title}》"
+          else
+            poem="（今日诗词获取失败，编译照常进行）"
+          fi
+
+          echo ">>> 今日诗词: $poem"
+          {
+            echo "poem<<EOF"
+            echo "$poem"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
           
-      - name: 上传发行版
+      - name: Upload firmware to release
         uses: softprops/action-gh-release@master
         with:
-          files: |
-            ${{ env.WD }}/bin/targets/x86/64/*
-          tag_name: ${{ steps.tag.outputs.tag }}
-          draft: false
-          prerelease: false
+          tag_name: ${{ steps.meta.outputs.TAG }}
+          name: ${{ steps.meta.outputs.TAG }}
           body: |
             ${{ steps.poem.outputs.poem }}
+          files: |
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.bin
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.img
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.img.gz
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.tar.gz
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/sha256sums
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.manifest
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/version.buildinfo
+          fail_on_unmatched_files: false
+          overwrite_files: true
+          make_latest: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # ============================================================
+      # Step 12: 失败时保留日志
+      # ============================================================
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@main
+        with:
+          name: build-log-${{ steps.meta.outputs.TAG || github.run_id }}
+          path: |
+            ${{ env.LEDE_DIR }}/.config
+            ${{ env.LEDE_DIR }}/logs/
+            ${{ env.LEDE_DIR }}/bin/targets/
+          retention-days: 7
+          if-no-files-found: ignore
