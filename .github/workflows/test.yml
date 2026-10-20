@@ -1,90 +1,98 @@
-name: Build LEDE Firmware Test
+name: Build LEDE Firmware
 
 on:
   # schedule:
-    # 北京时间 04:00 = UTC 20:00（前一天）
-    # - cron: '0 20 * * *'
+  #   # 北京时间 04:00 = UTC 20:00（前一天）
+  #   - cron: '0 20 * * *'
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
 
+env:
+  LEDE_REPO: https://github.com/coolsnowwolf/lede.git
+  LEDE_DIR: lede
+  CONFIG_FILE: my.config
+
+  # ccache 运行时参数。CCACHE_DIR 和 CCACHE_BASEDIR 由 LEDE rules.mk 设置，这里不要覆盖
+  CCACHE_MAXSIZE: 3G
+  CCACHE_COMPRESS: "true"
+  CCACHE_COMPRESSLEVEL: "6"
+  CCACHE_NOHASHDIR: "true"
+
 jobs:
   build:
+    name: Build
     runs-on: ubuntu-26.04
     timeout-minutes: 360
 
-    env:
-      # ccache 缓存目录（放在 workspace 根，便于 actions/cache 统一管理）
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CCACHE_MAXSIZE: 3G
-      # 让 ccache 基于相对路径计算哈希，解决不同运行间绝对路径变化导致的全量 miss
-      CCACHE_BASEDIR: ${{ github.workspace }}
-      CCACHE_COMPRESS: "true"
-      CCACHE_COMPRESSLEVEL: "6"
-      CCACHE_NOHASHDIR: "true"
-
     steps:
-      # ---------- 1. 检出当前仓库（获取 my.config） ----------
+      # ============================================================
+      # 阶段一：准备
+      # ============================================================
       - name: Checkout repo
         uses: actions/checkout@main
 
-      # ---------- 2. 生成 tag（北京时间） ----------
-      - name: Generate tag
-        id: tag
-        run: echo "TAG=v$(TZ='Asia/Shanghai' date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+      - name: Validate config
+        run: |
+          if [ ! -f "$CONFIG_FILE" ]; then
+            echo "::error::仓库根目录找不到 $CONFIG_FILE"
+            ls -la
+            exit 1
+          fi
+          echo ">>> 使用配置: $CONFIG_FILE"
 
-      # ---------- 3. 安装编译依赖 ----------
+      - name: Generate metadata
+        id: meta
+        run: |
+          echo "TAG=v$(TZ='Asia/Shanghai' date +%Y%m%d)" >> "$GITHUB_OUTPUT"
+          echo "BUILD_TIME=$(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S %Z')" >> "$GITHUB_OUTPUT"
+
+      # ============================================================
+      # 阶段二：环境
+      # ============================================================
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y \
-            ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-            bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib \
-            g++-multilib gettext genisoimage git gperf haveged help2man intltool libc6-dev-i386 \
-            libelf-dev libfuse-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev \
-            libncurses5-dev libncursesw5-dev libpython3-dev libreadline-dev libssl-dev libtool \
-            llvm lrzsz libnsl-dev ninja-build p7zip p7zip-full patch pkgconf python3 \
-            python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools \
-            subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd xz-utils zlib1g-dev
+          sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          bzip2 ccache clang cmake cpio curl device-tree-compiler flex gawk gcc-multilib g++-multilib gettext \
+          genisoimage git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev \
+          libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev \
+          libreadline-dev libssl-dev libtool llvm lrzsz libnsl-dev ninja-build p7zip p7zip-full patch pkgconf \
+          python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion \
+          swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd xz-utils zlib1g-dev
 
-      # ---------- 4. 克隆 LEDE 源码 ----------
       - name: Clone LEDE source
-        run: |
-          git clone --depth=1 https://github.com/coolsnowwolf/lede.git lede
+        run: git clone --depth=1 "$LEDE_REPO" "$LEDE_DIR"
 
-      # ---------- 5. 恢复 ccache 缓存 ----------
+      # LEDE rules.mk 将 CCACHE_DIR 固定为 $(TOPDIR)/.ccache，即 lede/.ccache
       - name: Restore ccache
         uses: actions/cache@main
         with:
-          path: ${{ env.CCACHE_DIR }}
+          path: ${{ env.LEDE_DIR }}/.ccache
           key: ${{ runner.os }}-ccache-${{ github.ref_name }}-${{ github.run_id }}
           restore-keys: |
             ${{ runner.os }}-ccache-${{ github.ref_name }}-
             ${{ runner.os }}-ccache-
 
-      # ---------- 6. 配置编译 ----------
+      # ============================================================
+      # 阶段三：配置
+      # ============================================================
       - name: Configure build
-        working-directory: lede
-        env:
-          REPO_DIR: ${{ github.workspace }}
+        working-directory: ${{ env.LEDE_DIR }}
         run: |
           set -e
 
-          # 检查 my.config 是否存在
-          CONFIG_PATH="$REPO_DIR/my.config"
-          if [ ! -f "$CONFIG_PATH" ]; then
-            echo "错误: 找不到配置文件 $CONFIG_PATH"
-            ls -la "$REPO_DIR"
-            exit 1
-          fi
-          echo ">>> 使用配置文件: $CONFIG_PATH"
-
-          # 初始化 ccache
-          mkdir -p "$CCACHE_DIR"
-          ccache --max-size="$CCACHE_MAXSIZE"
-          echo ">>> 恢复后的 ccache 状态:"
-          ccache -s || true
+          # LEDE 的 ccache 目录
+          LEDE_CCACHE_DIR="$PWD/.ccache"
+          mkdir -p "$LEDE_CCACHE_DIR"
+          CCACHE_DIR="$LEDE_CCACHE_DIR" ccache --max-size="$CCACHE_MAXSIZE"
+          echo ">>> 恢复后的 ccache:"
+          CCACHE_DIR="$LEDE_CCACHE_DIR" ccache -s || true
 
           # 启用 helloworld
           sed -i 's/#src-git helloworld/src-git helloworld/g' ./feeds.conf.default
@@ -93,12 +101,12 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-          # 把仓库里的 my.config 拷贝为 .config
-          cp "$CONFIG_PATH" .config
+          # 使用仓库中的配置
+          cp "${{ github.workspace }}/$CONFIG_FILE" .config
 
           # 启用 DEVEL + CCACHE（CCACHE 依赖 DEVEL）
           enable_config() {
-            key="$1"
+            local key="$1"
             if grep -q "^${key}=" .config; then
               sed -i "s|^${key}=.*|${key}=y|" .config
             elif grep -q "^# ${key} is not set" .config; then
@@ -115,64 +123,71 @@ jobs:
           if grep -q '^CONFIG_CCACHE=y' .config; then
             echo ">>> CONFIG_CCACHE=y 已生效"
           else
-            echo ">>> 警告: CONFIG_CCACHE 未启用"
+            echo "::warning::CONFIG_CCACHE 未启用"
             grep -E 'CONFIG_(CCACHE|DEVEL)' .config || true
           fi
 
-      # ---------- 7. 下载源码包 ----------
+      # ============================================================
+      # 阶段四：编译
+      # ============================================================
       - name: Download packages
-        working-directory: lede
+        working-directory: ${{ env.LEDE_DIR }}
         run: |
-          make download -j"$(nproc)" || make download -j1 || make download -j1 V=s
+          make download -j"$(nproc)" || \
+          make download -j1 || \
+          make download -j1 V=s
 
-      # ---------- 8. 编译固件 ----------
       - name: Build firmware
-        working-directory: lede
+        working-directory: ${{ env.LEDE_DIR }}
         run: |
-          make -j"$(nproc)" || make -j1 || make -j1 V=s
+          make -j"$(nproc)" || \
+          make -j1 || \
+          make -j1 V=s
 
-      # ---------- 9. ccache 统计 ----------
       - name: Show ccache stats
         if: always()
         run: |
+          LEDE_CCACHE_DIR="${{ github.workspace }}/${{ env.LEDE_DIR }}/.ccache"
           echo ">>> 编译结束后的 ccache 状态:"
-          ccache -s || true
+          CCACHE_DIR="$LEDE_CCACHE_DIR" ccache -s || true
           echo ">>> 缓存目录大小:"
-          du -sh "$CCACHE_DIR" 2>/dev/null || true
+          du -sh "$LEDE_CCACHE_DIR" 2>/dev/null || echo "(不存在)"
 
-      # ---------- 10. 上传固件到 Release ----------
+      # ============================================================
+      # 阶段五：发布
+      # ============================================================
       - name: Upload firmware to release
         uses: softprops/action-gh-release@master
         with:
-          tag_name: ${{ steps.tag.outputs.TAG }}
-          name: LEDE ${{ steps.tag.outputs.TAG }}
+          tag_name: ${{ steps.meta.outputs.TAG }}
+          name: LEDE ${{ steps.meta.outputs.TAG }}
           body: |
             Automated LEDE build on Ubuntu 26.04.
+
             - Source: coolsnowwolf/lede
-            - Config: `my.config` (from repo)
-            - Commit: ${{ github.sha }}
-            - Build time: $(TZ='Asia/Shanghai' date '+%Y-%m-%d %H:%M:%S %Z')
+            - Config: `${{ env.CONFIG_FILE }}` (from repo)
+            - Commit: `${{ github.sha }}`
+            - Build time: ${{ steps.meta.outputs.BUILD_TIME }}
           files: |
-            lede/bin/targets/*/*/*.bin
-            lede/bin/targets/*/*/*.img
-            lede/bin/targets/*/*/*.img.gz
-            lede/bin/targets/*/*/*.tar.gz
-            lede/bin/targets/*/*/sha256sums
-            lede/bin/targets/*/*/*.manifest
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.bin
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.img
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.img.gz
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.tar.gz
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/sha256sums
+            ${{ env.LEDE_DIR }}/bin/targets/*/*/*.manifest
           fail_on_unmatched_files: false
           overwrite: true
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ---------- 11. 失败时保留日志 ----------
       - name: Upload build log on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@main
         with:
-          name: build-log-${{ steps.tag.outputs.TAG }}
+          name: build-log-${{ steps.meta.outputs.TAG || github.run_id }}
           path: |
-            lede/.config
-            lede/logs/
+            ${{ env.LEDE_DIR }}/.config
+            ${{ env.LEDE_DIR }}/logs/
           retention-days: 7
           if-no-files-found: ignore
