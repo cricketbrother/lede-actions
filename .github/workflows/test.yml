@@ -176,7 +176,7 @@ jobs:
             ${{ env.LEDE_DIR }}/bin/targets/*/*/sha256sums
             ${{ env.LEDE_DIR }}/bin/targets/*/*/*.manifest
           fail_on_unmatched_files: false
-          overwrite: true
+          overwrite_files: true
           make_latest: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
